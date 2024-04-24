@@ -25,9 +25,13 @@ from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDoubleSpinBo
 import csv
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from graphPlotter import GraphPlotter 
 
 
 class Ui_GraphMaker(object):
+    SLIDER_DOUBLE_RATIO = 1e5  # sliderの値をdoubleに変換するための倍率
+    SPINBOX_Decimals = 5  # spinboxの小数点以下の桁数
+
     def setupUi(self, GraphMaker):
         if not GraphMaker.objectName():
             GraphMaker.setObjectName(u"GraphMaker")
@@ -177,11 +181,13 @@ class Ui_GraphMaker(object):
         self.sliderXAxisFontSize = QSlider(self.groupBox)
         self.sliderXAxisFontSize.setObjectName(u"sliderXAxisFontSize")
         self.sliderXAxisFontSize.setOrientation(Qt.Horizontal)
+        self.sliderXAxisFontSize.setValue(GraphPlotter.Axis.defaultFontSize)
 
         self.horizontalLayout_2.addWidget(self.sliderXAxisFontSize)
 
         self.spinBoxXAxisFontSize = QSpinBox(self.groupBox)
         self.spinBoxXAxisFontSize.setObjectName(u"spinBoxXAxisFontSize")
+        self.spinBoxXAxisFontSize.setValue(GraphPlotter.Axis.defaultFontSize)
 
         self.horizontalLayout_2.addWidget(self.spinBoxXAxisFontSize)
 
@@ -204,6 +210,7 @@ class Ui_GraphMaker(object):
 
         self.spinBoxXAxisMinLimit = QDoubleSpinBox(self.groupBox)
         self.spinBoxXAxisMinLimit.setObjectName(u"spinBoxXAxisMinLimit")
+        self.spinBoxXAxisMinLimit.setDecimals(self.SPINBOX_Decimals)
 
         self.horizontalLayout_4.addWidget(self.spinBoxXAxisMinLimit)
 
@@ -218,14 +225,15 @@ class Ui_GraphMaker(object):
 
         self.horizontalLayout_5.addWidget(self.checkBoxXAxisMaxLimit)
 
-        self.sliderXAxiMaxLimit = QSlider(self.groupBox)
-        self.sliderXAxiMaxLimit.setObjectName(u"sliderXAxiMaxLimit")
-        self.sliderXAxiMaxLimit.setOrientation(Qt.Horizontal)
+        self.sliderXAxisMaxLimit = QSlider(self.groupBox)
+        self.sliderXAxisMaxLimit.setObjectName(u"sliderXAxiMaxLimit")
+        self.sliderXAxisMaxLimit.setOrientation(Qt.Horizontal)
 
-        self.horizontalLayout_5.addWidget(self.sliderXAxiMaxLimit)
+        self.horizontalLayout_5.addWidget(self.sliderXAxisMaxLimit)
 
         self.SpinBoxXAxisMaxLimit = QDoubleSpinBox(self.groupBox)
         self.SpinBoxXAxisMaxLimit.setObjectName(u"SpinBoxXAxisMaxLimit")
+        self.SpinBoxXAxisMaxLimit.setDecimals(self.SPINBOX_Decimals)
 
         self.horizontalLayout_5.addWidget(self.SpinBoxXAxisMaxLimit)
 
@@ -268,11 +276,13 @@ class Ui_GraphMaker(object):
         self.sliderYAxisFontSize = QSlider(self.groupBox_3)
         self.sliderYAxisFontSize.setObjectName(u"sliderYAxisFontSize")
         self.sliderYAxisFontSize.setOrientation(Qt.Horizontal)
+        self.sliderYAxisFontSize.setValue(GraphPlotter.Axis.defaultFontSize)
 
         self.horizontalLayout_7.addWidget(self.sliderYAxisFontSize)
 
         self.spinBoxYAxisFontSize = QSpinBox(self.groupBox_3)
         self.spinBoxYAxisFontSize.setObjectName(u"spinBoxYAxisFontSize")
+        self.spinBoxYAxisFontSize.setValue(GraphPlotter.Axis.defaultFontSize)
 
         self.horizontalLayout_7.addWidget(self.spinBoxYAxisFontSize)
 
@@ -295,6 +305,7 @@ class Ui_GraphMaker(object):
 
         self.spinBoxYAxisMinLimit = QDoubleSpinBox(self.groupBox_3)
         self.spinBoxYAxisMinLimit.setObjectName(u"spinBoxYAxisMinLimit")
+        self.spinBoxYAxisMinLimit.setDecimals(self.SPINBOX_Decimals)
 
         self.horizontalLayout_8.addWidget(self.spinBoxYAxisMinLimit)
 
@@ -317,6 +328,7 @@ class Ui_GraphMaker(object):
 
         self.spinBoxYAxisMaxLimit = QDoubleSpinBox(self.groupBox_3)
         self.spinBoxYAxisMaxLimit.setObjectName(u"spinBoxYAxisMaxLimit")
+        self.spinBoxYAxisMaxLimit.setDecimals(self.SPINBOX_Decimals)
 
         self.horizontalLayout_9.addWidget(self.spinBoxYAxisMaxLimit)
 
@@ -529,12 +541,12 @@ class Ui_GraphMaker(object):
         self.groupBox_5.setFont(font)
         self.verticalLayout_11 = QVBoxLayout(self.groupBox_5)
         self.verticalLayout_11.setObjectName(u"verticalLayout_11")
-        self.FigurePlotPreview = plt.figure()
-        self.figureCanvasPlotPreview = FigureCanvas(plt.figure())
+
+        # plotter
+        self.plotter_ = GraphPlotter()
+        self.figureCanvasPlotPreview = FigureCanvas(self.plotter_.getFigure())
         self.figureCanvasPlotPreview.setObjectName(u"figureCanvasPlotPreview")
         self.figureCanvasPlotPreview.setFont(font)
-        self.axis = self.FigurePlotPreview.add_subplot(1,1,1) # axを持っておく
-
         self.verticalLayout_11.addWidget(self.figureCanvasPlotPreview)
 
         self.horizontalLayout_10 = QHBoxLayout()
@@ -604,6 +616,24 @@ class Ui_GraphMaker(object):
         self.listYAxisData.doubleClicked.connect(self.doubleClickedListYAxisData)
         self.pushButtonPlotPreview.clicked.connect(self.clickedPushButtonPlotPreview)
         self.pushButtonPlotExport.clicked.connect(self.clickedPushButtonPlotExport)
+        self.lineEditXAxisText.textChanged.connect(self.changedLineEditXAxisText)
+        self.lineEditYAxisText.textChanged.connect(self.changedLineEditYAxisText)
+        self.sliderXAxisFontSize.valueChanged.connect(self.changedSliderXAxisFontSize)
+        self.spinBoxXAxisFontSize.valueChanged.connect(self.changedSpinBoxXAxisFontSize)
+        self.sliderYAxisFontSize.valueChanged.connect(self.changedSliderYAxisFontSize)
+        self.spinBoxYAxisFontSize.valueChanged.connect(self.changedSpinBoxYAxisFontSize)
+        self.checkBoxXAxisMinLimit.stateChanged.connect(self.changedCheckBoxXAxisLimit)
+        self.sliderXAxisMinLimit.valueChanged.connect(self.changedSliderXAxisMinLimit)
+        self.spinBoxXAxisMinLimit.valueChanged.connect(self.changedSpinBoxXAxisMinLimit)
+        self.checkBoxXAxisMaxLimit.stateChanged.connect(self.changedCheckBoxXAxisLimit)
+        self.sliderXAxisMaxLimit.valueChanged.connect(self.changedSliderXAxiMaxLimit)
+        self.SpinBoxXAxisMaxLimit.valueChanged.connect(self.changedSpinBoxXAxisMaxLimit)
+        self.checkBoxYAxisMinLimit.stateChanged.connect(self.changedCheckBoxYAxisLimit)
+        self.sliderYAxisMinLimit.valueChanged.connect(self.changedSliderYAxisMinLimit)
+        self.spinBoxYAxisMinLimit.valueChanged.connect(self.changedSpinBoxYAxisMinLimit)
+        self.checkBoxYAxisMaxLimit.stateChanged.connect(self.changedCheckBoxYAxisLimit)
+        self.sliderYAxisMaxLimit.valueChanged.connect(self.changedSliderYAxisMaxLimit)
+        self.spinBoxYAxisMaxLimit.valueChanged.connect(self.changedSpinBoxYAxisMaxLimit)
 
         self.dataList_ = {}
 
@@ -688,7 +718,8 @@ class Ui_GraphMaker(object):
         self.listDataList.addItems(newHeaders)
 
         for i in range(len(newHeaders)):
-            self.dataList_[newHeaders[i]] = [float(data[i]) for data in dataList]
+            self.dataList_[newHeaders[i]] = [float(data[i]) if data[i] != "" else 0 for data in dataList]
+        self.plotter_.setData(list(self.dataList_.values()))
 
         self.listDataList.setCurrentRow(0)
     # loadCsvData
@@ -716,23 +747,47 @@ class Ui_GraphMaker(object):
     def clickedButtonAddXAxis(self):
         if self.listDataList.currentItem() is None:
             return
+        
         text = self.listDataList.currentItem().text()
+        if self.listXAxisData.findItems(text, Qt.MatchExactly):
+            # リストにすでに存在する場合は追加しない
+            return
+        
+        index = self.convertHeaderToIndex(text)
+        self.plotter_.setXDataIndex(index)
         self.addTextToList(self.listXAxisData, text, clear=True)
     # clickedButtonAddXAxis
 
     def clickedButtonAddYAxis(self):
         if self.listDataList.currentItem() is None:
             return
+        
         text = self.listDataList.currentItem().text()
+        if self.listYAxisData.findItems(text, Qt.MatchExactly):
+            # リストにすでに存在する場合は追加しない
+            return
+
+        index = self.convertHeaderToIndex(text)
+        self.plotter_.addYDataIndex(index)
         self.addTextToList(self.listYAxisData, text)
     # clickedButtonAddYAxis
 
     def clickedButtonRemoveYAxis(self):
         if self.listYAxisData.currentItem() is None:
             return
+        
         text = self.listYAxisData.currentItem().text()
+        if not self.listYAxisData.findItems(text, Qt.MatchExactly):
+            # リストに存在しない場合は削除しない
+            return
+        
+        index = self.convertHeaderToIndex(text)
+        self.plotter_.removeYDataIndex(index)
         self.removeTextFromList(self.listYAxisData, text)
     # clickedButtonRemoveYAxis
+
+    def convertHeaderToIndex(self, header):
+        return list(self.dataList_.keys()).index(header)
 
     def doubleClickedListDataList(self):
         if self.listXAxisData.count() == 0:
@@ -757,24 +812,169 @@ class Ui_GraphMaker(object):
         self.exportGraph()
     # clickedPushButtonPlotExport
 
+    def changedLineEditXAxisText(self):
+        self.plotter_.setXAxisLabel(self.lineEditXAxisText.text())
+        self.plotGraph()
+    # changedLineEditXAxisText
+
+    def changedLineEditYAxisText(self):
+        self.plotter_.setYAxisLabel(self.lineEditYAxisText.text())
+        self.plotGraph()
+    # changedLineEditYAxisText
+
+    def changedSliderXAxisFontSize(self, value):
+        self.spinBoxXAxisFontSize.setValue(value)
+        self.setXAxisFontSize(value)
+    # changedSliderXAxisFontSize
+
+    def changedSpinBoxXAxisFontSize(self, value):
+        self.sliderXAxisFontSize.setValue(value)
+        self.setXAxisFontSize(value)
+    # changedSpinBoxXAxisFontSize
+
+    def setXAxisFontSize(self, value):
+        self.plotter_.setXAxisFontSize(value)
+        self.plotGraph()
+    # setXAxisFontSize
+
+    def changedSliderYAxisFontSize(self, value):
+        self.spinBoxYAxisFontSize.setValue(value)
+        self.setYAxisFontSize(value)
+    # changedSliderYAxisFontSize
+
+    def changedSpinBoxYAxisFontSize(self, value):
+        self.sliderYAxisFontSize.setValue(value)
+        self.setYAxisFontSize(value)
+    # changedSpinBoxYAxisFontSize
+
+    def setYAxisFontSize(self, value):
+        self.plotter_.setYAxisFontSize(value)
+        self.plotGraph()
+    # setYAxisFontSize
+
     def plotGraph(self):
         plt.cla()
         if self.listXAxisData.count() == 0 or self.listYAxisData.count() == 0:
             return
         
-        x_data = self.dataList_[self.listXAxisData.item(0).text()]
-        for i in range(0, self.listYAxisData.count()):
-            y_data = self.dataList_[self.listYAxisData.item(i).text()]
-            print(x_data)
-            print(y_data)
-            print(self.listYAxisData.count())
-
-            plt.plot(x_data, y_data)
-        plt.xlabel("X Axis")
-        plt.ylabel("Y Axis")
-
+        self.plotter_.plot()
         self.figureCanvasPlotPreview.draw()
+
+        self.updatePlotDataRange()
     # plotGraph
+
+    def updatePlotDataRange(self):
+        xDataRange = self.plotter_.getXDataRange()
+        yDataRange = self.plotter_.getYDataRange()
+
+        # 範囲を+-10%ずつ増やす
+        xMin = xDataRange["min"] - (xDataRange["max"] - xDataRange["min"]) * 0.1
+        xMax = xDataRange["max"] + (xDataRange["max"] - xDataRange["min"]) * 0.1
+        yMin = yDataRange["min"] - (yDataRange["max"] - yDataRange["min"]) * 0.1
+        yMax = yDataRange["max"] + (yDataRange["max"] - yDataRange["min"]) * 0.1
+
+        # スライダとスピンボックスに反映
+        # X軸 min
+        self.sliderXAxisMinLimit.setMinimum(xMin * self.SLIDER_DOUBLE_RATIO)
+        self.sliderXAxisMinLimit.setMaximum(xMax * self.SLIDER_DOUBLE_RATIO)
+        self.sliderXAxisMinLimit.setSingleStep((xMax - xMin) / 100 * self.SLIDER_DOUBLE_RATIO)
+        self.spinBoxXAxisMinLimit.setMinimum(xMin)
+        self.spinBoxXAxisMinLimit.setMaximum(xMax)
+        # X軸 max
+        self.sliderXAxisMaxLimit.setMinimum(xMin * self.SLIDER_DOUBLE_RATIO)
+        self.sliderXAxisMaxLimit.setMaximum(xMax * self.SLIDER_DOUBLE_RATIO)
+        self.sliderXAxisMaxLimit.setSingleStep((xMax - xMin) / 100 * self.SLIDER_DOUBLE_RATIO)
+        self.SpinBoxXAxisMaxLimit.setMinimum(xMin)
+        self.SpinBoxXAxisMaxLimit.setMaximum(xMax)
+        # Y軸 min
+        self.sliderYAxisMinLimit.setMinimum(yMin * self.SLIDER_DOUBLE_RATIO)
+        self.sliderYAxisMinLimit.setMaximum(yMax * self.SLIDER_DOUBLE_RATIO)
+        self.sliderYAxisMinLimit.setSingleStep((yMax - yMin) / 100 * self.SLIDER_DOUBLE_RATIO)
+        self.spinBoxYAxisMinLimit.setMinimum(yMin)
+        self.spinBoxYAxisMinLimit.setMaximum(yMax)
+        # Y軸 max
+        self.sliderYAxisMaxLimit.setMinimum(yMin * self.SLIDER_DOUBLE_RATIO)
+        self.sliderYAxisMaxLimit.setMaximum(yMax * self.SLIDER_DOUBLE_RATIO)
+        self.sliderYAxisMaxLimit.setSingleStep((yMax - yMin) / 100 * self.SLIDER_DOUBLE_RATIO)
+        self.spinBoxYAxisMaxLimit.setMinimum(yMin)
+        self.spinBoxYAxisMaxLimit.setMaximum(yMax)
+    # updatePlotDataRange
+
+    def changedCheckBoxXAxisLimit(self, state):
+        minEnabled = self.checkBoxXAxisMinLimit.isChecked()
+        maxEnabled = self.checkBoxXAxisMaxLimit.isChecked()
+        self.plotter_.setXAxisLimitEnabled(minEnabled, maxEnabled)
+        self.plotGraph()
+    # changedCheckBoxXAxisMinLimit
+
+    def updateXAxisLimitValue(self):
+        minValue = self.spinBoxXAxisMinLimit.value()
+        maxValue = self.SpinBoxXAxisMaxLimit.value()
+        self.plotter_.setXAxisLimitValue(minValue, maxValue)
+        self.plotGraph()
+    # updateXAxisLimitValue
+
+    def changedSliderXAxisMinLimit(self, value):
+        rescaledValue = value / self.SLIDER_DOUBLE_RATIO
+        self.spinBoxXAxisMinLimit.setValue(rescaledValue)
+        self.updateXAxisLimitValue()
+    # changedSliderXAxisMinLimit
+
+    def changedSpinBoxXAxisMinLimit(self, value):
+        rescaledValue = value * self.SLIDER_DOUBLE_RATIO
+        self.sliderXAxisMinLimit.setValue(rescaledValue)
+        self.updateXAxisLimitValue()
+    # changedSpinBoxXAxisMinLimit
+
+    def changedSliderXAxiMaxLimit(self, value):
+        rescaledValue = value / self.SLIDER_DOUBLE_RATIO
+        self.SpinBoxXAxisMaxLimit.setValue(rescaledValue)
+        self.updateXAxisLimitValue()
+    # changedSliderXAxiMaxLimit
+
+    def changedSpinBoxXAxisMaxLimit(self, value):
+        rescaledValue = value * self.SLIDER_DOUBLE_RATIO
+        self.sliderXAxisMaxLimit.setValue(rescaledValue)
+        self.updateXAxisLimitValue()
+    # changedSpinBoxXAxisMaxLimit
+
+    def changedCheckBoxYAxisLimit(self, state):
+        minEnabled = self.checkBoxYAxisMinLimit.isChecked()
+        maxEnabled = self.checkBoxYAxisMaxLimit.isChecked()
+        self.plotter_.setYAxisLimitEnabled(minEnabled, maxEnabled)
+        self.plotGraph()
+    # changedCheckBoxYAxisLimit
+
+    def updateYAxisLimitValue(self):
+        minValue = self.spinBoxYAxisMinLimit.value()
+        maxValue = self.spinBoxYAxisMaxLimit.value()
+        self.plotter_.setYAxisLimitValue(minValue, maxValue)
+        self.plotGraph()
+    # updateYAxisLimitValue
+
+    def changedSliderYAxisMinLimit(self, value):
+        rescaledValue = value / self.SLIDER_DOUBLE_RATIO
+        self.spinBoxYAxisMinLimit.setValue(rescaledValue)
+        self.updateYAxisLimitValue()
+    # changedSliderYAxisMinLimit
+
+    def changedSpinBoxYAxisMinLimit(self, value):
+        rescaledValue = value * self.SLIDER_DOUBLE_RATIO
+        self.sliderYAxisMinLimit.setValue(rescaledValue)
+        self.updateYAxisLimitValue()
+    # changedSpinBoxYAxisMinLimit
+
+    def changedSliderYAxisMaxLimit(self, value):
+        rescaledValue = value / self.SLIDER_DOUBLE_RATIO
+        self.spinBoxYAxisMaxLimit.setValue(rescaledValue)
+        self.updateYAxisLimitValue()
+    # changedSliderYAxisMaxLimit
+
+    def changedSpinBoxYAxisMaxLimit(self, value):
+        rescaledValue = value * self.SLIDER_DOUBLE_RATIO
+        self.sliderYAxisMaxLimit.setValue(rescaledValue)
+        self.updateYAxisLimitValue()
+    # changedSpinBoxYAxisMaxLimit
 
     def exportGraph(self):
         file_dialog = QFileDialog()
@@ -782,9 +982,9 @@ class Ui_GraphMaker(object):
         if file_path == '':
             return
         
-        plt.savefig(file_path)
+        self.plotter_.save(file_path)
+    # exportGraph
         
-
     def addTextToList(self, list: QListWidget, text: str, clear: bool = False):
         if clear:
             list.clear()
