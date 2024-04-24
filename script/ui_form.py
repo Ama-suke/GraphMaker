@@ -38,8 +38,8 @@ class Ui_GraphMaker(object):
         GraphMaker.resize(900, 550)
         self.actionLoadTable = QAction(GraphMaker)
         self.actionLoadTable.setObjectName(u"actionLoadTable") 
-        self.actionSaveTable = QAction(GraphMaker)
-        self.actionSaveTable.setObjectName(u"actionSaveTable")
+        self.actionClearTable = QAction(GraphMaker)
+        self.actionClearTable.setObjectName(u"actionClearTable")
         self.actionLoadSetting = QAction(GraphMaker)
         self.actionLoadSetting.setObjectName(u"actionLoadSetting")
         self.actionSaveSetting = QAction(GraphMaker)
@@ -592,7 +592,7 @@ class Ui_GraphMaker(object):
         self.menubar.addAction(self.menuEdit.menuAction())
         self.menubar.addAction(self.menuHelp.menuAction())
         self.menuFile.addAction(self.actionLoadTable)
-        self.menuFile.addAction(self.actionSaveTable)
+        self.menuFile.addAction(self.actionClearTable)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionLoadSetting)
         self.menuFile.addAction(self.actionSaveSetting)
@@ -604,7 +604,7 @@ class Ui_GraphMaker(object):
 
         # callbacks
         self.actionLoadTable.triggered.connect(self.clickedActionLoadTable) 
-        self.actionSaveTable.triggered.connect(self.clickedActionSaveTable)
+        self.actionClearTable.triggered.connect(self.clickedActionClearTable)
         self.actionLoadSetting.triggered.connect(self.clickedActionLoadSetting)
         self.actionSaveSetting.triggered.connect(self.clickedActionSaveSetting)
         self.actionUserManual.triggered.connect(self.clickedActionUserManual)
@@ -644,7 +644,7 @@ class Ui_GraphMaker(object):
     def retranslateUi(self, GraphMaker):
         GraphMaker.setWindowTitle(QCoreApplication.translate("GraphMaker", u"GraphMaker", None))
         self.actionLoadTable.setText(QCoreApplication.translate("GraphMaker", u"Load table", None))
-        self.actionSaveTable.setText(QCoreApplication.translate("GraphMaker", u"Save table", None))
+        self.actionClearTable.setText(QCoreApplication.translate("GraphMaker", u"Clear table", None))
         self.actionLoadSetting.setText(QCoreApplication.translate("GraphMaker", u"Load setting", None))
         self.actionSaveSetting.setText(QCoreApplication.translate("GraphMaker", u"Save setting", None))
         self.actionUserManual.setText(QCoreApplication.translate("GraphMaker", u"User manual", None))
@@ -728,9 +728,13 @@ class Ui_GraphMaker(object):
         pass
     # loadRosBagData
 
-    def clickedActionSaveTable(self):
-        pass
-    # clickedActionSaveTable
+    def clickedActionClearTable(self):
+        self.listDataList.clear()
+        self.listDataList.addItem("No data")
+        self.dataList_ = {}
+        self.plotter_.setData([])
+        self.plotGraph()
+    # clickedActionClearTable
 
     def clickedActionLoadSetting(self):
         pass
@@ -904,76 +908,81 @@ class Ui_GraphMaker(object):
         minEnabled = self.checkBoxXAxisMinLimit.isChecked()
         maxEnabled = self.checkBoxXAxisMaxLimit.isChecked()
         self.plotter_.setXAxisLimitEnabled(minEnabled, maxEnabled)
+
         self.plotGraph()
     # changedCheckBoxXAxisMinLimit
 
-    def updateXAxisLimitValue(self):
+    def updateXAxisLimitValue(self, plotEnabled=True):
         minValue = self.spinBoxXAxisMinLimit.value()
         maxValue = self.SpinBoxXAxisMaxLimit.value()
         self.plotter_.setXAxisLimitValue(minValue, maxValue)
-        self.plotGraph()
+        if plotEnabled:
+            self.plotGraph()
     # updateXAxisLimitValue
 
     def changedSliderXAxisMinLimit(self, value):
         rescaledValue = value / self.SLIDER_DOUBLE_RATIO
         self.spinBoxXAxisMinLimit.setValue(rescaledValue)
-        self.updateXAxisLimitValue()
+        self.updateXAxisLimitValue(self.checkBoxXAxisMinLimit.isChecked())
     # changedSliderXAxisMinLimit
 
     def changedSpinBoxXAxisMinLimit(self, value):
         rescaledValue = value * self.SLIDER_DOUBLE_RATIO
         self.sliderXAxisMinLimit.setValue(rescaledValue)
-        self.updateXAxisLimitValue()
+        self.updateXAxisLimitValue(self.checkBoxXAxisMinLimit.isChecked())
     # changedSpinBoxXAxisMinLimit
 
     def changedSliderXAxiMaxLimit(self, value):
         rescaledValue = value / self.SLIDER_DOUBLE_RATIO
         self.SpinBoxXAxisMaxLimit.setValue(rescaledValue)
-        self.updateXAxisLimitValue()
+        self.updateXAxisLimitValue(self.checkBoxXAxisMaxLimit.isChecked())
     # changedSliderXAxiMaxLimit
 
     def changedSpinBoxXAxisMaxLimit(self, value):
         rescaledValue = value * self.SLIDER_DOUBLE_RATIO
         self.sliderXAxisMaxLimit.setValue(rescaledValue)
-        self.updateXAxisLimitValue()
+        self.updateXAxisLimitValue(self.checkBoxXAxisMaxLimit.isChecked())
     # changedSpinBoxXAxisMaxLimit
 
     def changedCheckBoxYAxisLimit(self, state):
         minEnabled = self.checkBoxYAxisMinLimit.isChecked()
         maxEnabled = self.checkBoxYAxisMaxLimit.isChecked()
         self.plotter_.setYAxisLimitEnabled(minEnabled, maxEnabled)
+
         self.plotGraph()
     # changedCheckBoxYAxisLimit
 
-    def updateYAxisLimitValue(self):
+    def updateYAxisLimitValue(self, plotEnabled=True):
         minValue = self.spinBoxYAxisMinLimit.value()
         maxValue = self.spinBoxYAxisMaxLimit.value()
         self.plotter_.setYAxisLimitValue(minValue, maxValue)
-        self.plotGraph()
+
+        if plotEnabled:
+            self.plotGraph()
     # updateYAxisLimitValue
 
     def changedSliderYAxisMinLimit(self, value):
         rescaledValue = value / self.SLIDER_DOUBLE_RATIO
         self.spinBoxYAxisMinLimit.setValue(rescaledValue)
-        self.updateYAxisLimitValue()
+        self.updateYAxisLimitValue(self.checkBoxYAxisMinLimit.isChecked())
     # changedSliderYAxisMinLimit
 
     def changedSpinBoxYAxisMinLimit(self, value):
         rescaledValue = value * self.SLIDER_DOUBLE_RATIO
         self.sliderYAxisMinLimit.setValue(rescaledValue)
-        self.updateYAxisLimitValue()
+        self.updateYAxisLimitValue(self.checkBoxYAxisMinLimit.isChecked())
     # changedSpinBoxYAxisMinLimit
 
     def changedSliderYAxisMaxLimit(self, value):
         rescaledValue = value / self.SLIDER_DOUBLE_RATIO
         self.spinBoxYAxisMaxLimit.setValue(rescaledValue)
-        self.updateYAxisLimitValue()
+        self.updateYAxisLimitValue(self.checkBoxYAxisMaxLimit.isChecked())
     # changedSliderYAxisMaxLimit
 
     def changedSpinBoxYAxisMaxLimit(self, value):
         rescaledValue = value * self.SLIDER_DOUBLE_RATIO
         self.sliderYAxisMaxLimit.setValue(rescaledValue)
-        self.updateYAxisLimitValue()
+        self.updateYAxisLimitValue(self.checkBoxYAxisMaxLimit.isChecked())
     # changedSpinBoxYAxisMaxLimit
 
     def exportGraph(self):
