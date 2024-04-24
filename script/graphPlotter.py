@@ -149,6 +149,14 @@ class GraphPlotter:
     
     def getYDataRange(self):
         return self.yDataRange_
+    
+    def clear(self):
+        self.ax_.clear()
+        self.dataList_ = []
+        self.xDataIndexes_ = []
+        self.yDataIndexes_ = []
+        self.resetRange_(self.xDataRange_)
+        self.resetRange_(self.yDataRange_)
 
     def show(self):
         plt.show()

@@ -730,9 +730,12 @@ class Ui_GraphMaker(object):
 
     def clickedActionClearTable(self):
         self.listDataList.clear()
+        self.listXAxisData.clear()
+        self.listYAxisData.clear()
         self.listDataList.addItem("No data")
         self.dataList_ = {}
-        self.plotter_.setData([])
+        
+        self.plotter_.clear()
         self.plotGraph()
     # clickedActionClearTable
 
