@@ -861,8 +861,6 @@ class Ui_GraphMaker(object):
 
     def plotGraph(self):
         plt.cla()
-        if self.listXAxisData.count() == 0 or self.listYAxisData.count() == 0:
-            return
         
         self.plotter_.plot()
         self.figureCanvasPlotPreview.draw()

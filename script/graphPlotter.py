@@ -68,17 +68,24 @@ class GraphPlotter:
         self.resetRange_(self.yDataRange_)
 
         # plot
-        for i in range(len(self.yDataIndexes_)):
-            yData = self.dataList_[self.yDataIndexes_[i]]
-            if len(self.xDataIndexes_) == 1:
-                # x軸が1つの場合はデータを共有する
-                xData = self.dataList_[self.xDataIndexes_[0]]
-                self.ax_.plot(xData, yData)
-            else:
-                xData = self.dataList_[self.xDataIndexes_[i]]
-                self.ax_.plot(xData, yData)
-            self.updateRange_(self.xDataRange_, xData)
-            self.updateRange_(self.yDataRange_, yData)
+        once = True
+        while once:
+            once = False
+            if len(self.yDataIndexes_) == 0 or len(self.xDataIndexes_) == 0:
+                self.ax_.plot([], [])
+                break
+
+            for i in range(len(self.yDataIndexes_)):
+                yData = self.dataList_[self.yDataIndexes_[i]]
+                if len(self.xDataIndexes_) == 1:
+                    # x軸が1つの場合はデータを共有する
+                    xData = self.dataList_[self.xDataIndexes_[0]]
+                    self.ax_.plot(xData, yData)
+                else:
+                    xData = self.dataList_[self.xDataIndexes_[i]]
+                    self.ax_.plot(xData, yData)
+                self.updateRange_(self.xDataRange_, xData)
+                self.updateRange_(self.yDataRange_, yData)
 
         # set the axis parameters
         self.ax_.set_xlabel(self.xAxis_.label, fontsize=self.xAxis_.fontSize)
