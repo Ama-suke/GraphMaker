@@ -1,0 +1,38 @@
+{
+    "xAxis":
+    {
+        "label": "",
+        "fontSize": "20",
+        "limit":
+        {
+            "min": 
+            {
+                "enabled": "False",
+                "value": "0"
+            },
+            "max": 
+            {
+                "enabled": "False",
+                "value": "0"
+            }
+        }
+    },
+    "yAxis":
+    {
+        "label": "",
+        "fontSize": "12",
+        "limit":
+        {
+            "min": 
+            {
+                "enabled": "False",
+                "value": "0"
+            },
+            "max": 
+            {
+                "enabled": "False",
+                "value": "0"
+            }
+        }
+    }
+}

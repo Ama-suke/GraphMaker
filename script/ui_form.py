@@ -26,6 +26,8 @@ import csv
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from graphPlotter import GraphPlotter 
+import json
+from distutils.util import strtobool
 
 
 class Ui_GraphMaker(object):
@@ -231,11 +233,11 @@ class Ui_GraphMaker(object):
 
         self.horizontalLayout_5.addWidget(self.sliderXAxisMaxLimit)
 
-        self.SpinBoxXAxisMaxLimit = QDoubleSpinBox(self.groupBox)
-        self.SpinBoxXAxisMaxLimit.setObjectName(u"SpinBoxXAxisMaxLimit")
-        self.SpinBoxXAxisMaxLimit.setDecimals(self.SPINBOX_Decimals)
+        self.spinBoxXAxisMaxLimit = QDoubleSpinBox(self.groupBox)
+        self.spinBoxXAxisMaxLimit.setObjectName(u"SpinBoxXAxisMaxLimit")
+        self.spinBoxXAxisMaxLimit.setDecimals(self.SPINBOX_Decimals)
 
-        self.horizontalLayout_5.addWidget(self.SpinBoxXAxisMaxLimit)
+        self.horizontalLayout_5.addWidget(self.spinBoxXAxisMaxLimit)
 
 
         self.verticalLayout_5.addLayout(self.horizontalLayout_5)
@@ -627,7 +629,7 @@ class Ui_GraphMaker(object):
         self.spinBoxXAxisMinLimit.valueChanged.connect(self.changedSpinBoxXAxisMinLimit)
         self.checkBoxXAxisMaxLimit.stateChanged.connect(self.changedCheckBoxXAxisLimit)
         self.sliderXAxisMaxLimit.valueChanged.connect(self.changedSliderXAxiMaxLimit)
-        self.SpinBoxXAxisMaxLimit.valueChanged.connect(self.changedSpinBoxXAxisMaxLimit)
+        self.spinBoxXAxisMaxLimit.valueChanged.connect(self.changedSpinBoxXAxisMaxLimit)
         self.checkBoxYAxisMinLimit.stateChanged.connect(self.changedCheckBoxYAxisLimit)
         self.sliderYAxisMinLimit.valueChanged.connect(self.changedSliderYAxisMinLimit)
         self.spinBoxYAxisMinLimit.valueChanged.connect(self.changedSpinBoxYAxisMinLimit)
@@ -740,10 +742,34 @@ class Ui_GraphMaker(object):
     # clickedActionClearTable
 
     def clickedActionLoadSetting(self):
+        file_dialog = QFileDialog()
+        file_path, _ = file_dialog.getOpenFileName(None, "Select File", "", "Setting Files (*.json)")
+        if file_path == '':
+            return
         pass
+
+        with open(file_path, 'r') as file:
+            settings = json.load(file)
+
+            # 軸ラベル
+            self.lineEditXAxisText.setText(settings["xAxis"]["label"])
+            self.lineEditYAxisText.setText(settings["yAxis"]["label"])
+            # フォントサイズ
+            self.sliderXAxisFontSize.setValue(int(settings["xAxis"]["fontSize"]))
+            self.sliderYAxisFontSize.setValue(int(settings["yAxis"]["fontSize"]))
+            # 軸制限
+            self.checkBoxXAxisMinLimit.setChecked(strtobool(settings["xAxis"]["limit"]["min"]["enabled"]))
+            self.checkBoxXAxisMaxLimit.setChecked(strtobool(settings["xAxis"]["limit"]["max"]["enabled"]))
+            self.checkBoxYAxisMinLimit.setChecked(strtobool(settings["yAxis"]["limit"]["min"]["enabled"]))
+            self.checkBoxYAxisMaxLimit.setChecked(strtobool(settings["yAxis"]["limit"]["max"]["enabled"]))
+            self.spinBoxXAxisMinLimit.setValue(float(settings["xAxis"]["limit"]["min"]["value"]))
+            self.spinBoxXAxisMaxLimit.setValue(float(settings["xAxis"]["limit"]["max"]["value"]))
+            self.spinBoxYAxisMinLimit.setValue(float(settings["yAxis"]["limit"]["min"]["value"]))
+            self.spinBoxYAxisMaxLimit.setValue(float(settings["yAxis"]["limit"]["max"]["value"]))
     # clickedActionLoadSetting
 
     def clickedActionSaveSetting(self):
+        
         pass
     # clickedActionSaveSetting
 
@@ -891,8 +917,8 @@ class Ui_GraphMaker(object):
         self.sliderXAxisMaxLimit.setMinimum(xMin * self.SLIDER_DOUBLE_RATIO)
         self.sliderXAxisMaxLimit.setMaximum(xMax * self.SLIDER_DOUBLE_RATIO)
         self.sliderXAxisMaxLimit.setSingleStep((xMax - xMin) / 100 * self.SLIDER_DOUBLE_RATIO)
-        self.SpinBoxXAxisMaxLimit.setMinimum(xMin)
-        self.SpinBoxXAxisMaxLimit.setMaximum(xMax)
+        self.spinBoxXAxisMaxLimit.setMinimum(xMin)
+        self.spinBoxXAxisMaxLimit.setMaximum(xMax)
         # Y軸 min
         self.sliderYAxisMinLimit.setMinimum(yMin * self.SLIDER_DOUBLE_RATIO)
         self.sliderYAxisMinLimit.setMaximum(yMax * self.SLIDER_DOUBLE_RATIO)
@@ -917,7 +943,7 @@ class Ui_GraphMaker(object):
 
     def updateXAxisLimitValue(self, plotEnabled=True):
         minValue = self.spinBoxXAxisMinLimit.value()
-        maxValue = self.SpinBoxXAxisMaxLimit.value()
+        maxValue = self.spinBoxXAxisMaxLimit.value()
         self.plotter_.setXAxisLimitValue(minValue, maxValue)
         if plotEnabled:
             self.plotGraph()
@@ -937,7 +963,7 @@ class Ui_GraphMaker(object):
 
     def changedSliderXAxiMaxLimit(self, value):
         rescaledValue = value / self.SLIDER_DOUBLE_RATIO
-        self.SpinBoxXAxisMaxLimit.setValue(rescaledValue)
+        self.spinBoxXAxisMaxLimit.setValue(rescaledValue)
         self.updateXAxisLimitValue(self.checkBoxXAxisMaxLimit.isChecked())
     # changedSliderXAxiMaxLimit
 

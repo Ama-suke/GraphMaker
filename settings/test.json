@@ -1,0 +1,38 @@
+{
+    "xAxis":
+    {
+        "label": "Time [s]",
+        "fontSize": "20",
+        "limit":
+        {
+            "min": 
+            {
+                "enabled": "True",
+                "value": "0"
+            },
+            "max": 
+            {
+                "enabled": "True",
+                "value": "0.5"
+            }
+        }
+    },
+    "yAxis":
+    {
+        "label": "Value [-]",
+        "fontSize": "15",
+        "limit":
+        {
+            "min": 
+            {
+                "enabled": "False",
+                "value": "0"
+            },
+            "max": 
+            {
+                "enabled": "False",
+                "value": "0"
+            }
+        }
+    }
+}
