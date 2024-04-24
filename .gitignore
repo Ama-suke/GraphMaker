@@ -3,3 +3,9 @@
 *.png
 __pycache__
 .qtcreator
+build/
+dist/
+*.spec
+
+# whitelist
+!testData/*
