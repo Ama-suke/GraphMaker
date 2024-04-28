@@ -232,7 +232,7 @@ class Ui_GraphMaker(object):
         self.sliderXAxisFontSize = my_widget.LabeledSlider(self.groupBoxXAxis, False, False, False)
         self.sliderXAxisFontSize.setObjectName(u"SliderXAxisFontSize")
         self.sliderXAxisFontSize.setLabelText(QCoreApplication.translate("GraphMaker", u"Font size:", None))
-        self.sliderXAxisFontSize.setValue(GraphPlotter.Axis.DEFAULT_FONT_SIZE)
+        self.sliderXAxisFontSize.setValue(GraphPlotter.DEFAULT_FONT_SIZE)
         self.sliderXAxisFontSize.setRange(1, 100)
         self.sliderXAxisFontSize.setValueChangeCallback(self.setXAxisFontSize)
         # min limit
@@ -274,7 +274,7 @@ class Ui_GraphMaker(object):
         self.sliderYAxisFontSize = my_widget.LabeledSlider  (self.groupBoxYAxis, False, False, False)
         self.sliderYAxisFontSize.setObjectName(u"SliderYAxisFontSize")
         self.sliderYAxisFontSize.setLabelText(QCoreApplication.translate("GraphMaker", u"Font size:", None))
-        self.sliderYAxisFontSize.setValue(GraphPlotter.Axis.DEFAULT_FONT_SIZE)
+        self.sliderYAxisFontSize.setValue(GraphPlotter.DEFAULT_FONT_SIZE)
         self.sliderYAxisFontSize.setRange(1, 100)
         self.sliderYAxisFontSize.setValueChangeCallback(self.setYAxisFontSize)
         # min limit
@@ -375,12 +375,19 @@ class Ui_GraphMaker(object):
         self.verticalLayoutLegend.setObjectName(u"VerticalLayoutLegend")
         
         # objects
+        # text
+        self.lineEditLegendText = my_widget.LabeledLineEdit(self.groupBoxLegend, True, True)
+        self.lineEditLegendText.setObjectName(u"LineEditLegendText")
+        self.lineEditLegendText.setLabelText(QCoreApplication.translate("GraphMaker", u"Text:", None))
+        self.lineEditLegendText.setCheckedCallback(self.changedCheckBoxLegendText)
+        self.lineEditLegendText.setTextChangedCallback(self.changedLineEditLegendText)
         # font size
         self.sliderLegendFontSize = my_widget.LabeledSlider(self.groupBoxLegend, False, False, False)
         self.sliderLegendFontSize.setObjectName(u"SliderLegendFontSize")
         self.sliderLegendFontSize.setLabelText(QCoreApplication.translate("GraphMaker", u"Font size:", None))
-        self.sliderLegendFontSize.setValue(GraphPlotter.Axis.DEFAULT_FONT_SIZE)
+        self.sliderLegendFontSize.setValue(GraphPlotter.DEFAULT_FONT_SIZE)
         self.sliderLegendFontSize.setRange(1, 100)
+        self.sliderLegendFontSize.setValueChangeCallback(self.changedSliderLegendFontSize)
         # x position
         self.sliderLegendXPosition = my_widget.LabeledSlider(self.groupBoxLegend, False, False, False)
         self.sliderLegendXPosition.setObjectName(u"SliderLegendXPosition")
@@ -393,6 +400,7 @@ class Ui_GraphMaker(object):
         self.sliderLegendYPosition.setRange(0, 100)
         
         # layout
+        self.verticalLayoutLegend.addLayout(self.lineEditLegendText.getLayout())
         self.verticalLayoutLegend.addLayout(self.sliderLegendFontSize.getLayout())
         self.verticalLayoutLegend.addLayout(self.sliderLegendXPosition.getLayout())
         self.verticalLayoutLegend.addLayout(self.sliderLegendYPosition.getLayout())
@@ -553,6 +561,7 @@ class Ui_GraphMaker(object):
         self.listXAxisData.clear()
         self.listYAxisData.clear()
         self.listDataList.addItem("No data")
+        self.lineEditLegendText.clearSelectBox()
         self.dataList_ = {}
         
         self.plotter_.clear()
@@ -596,6 +605,7 @@ class Ui_GraphMaker(object):
 
         index = self.convertHeaderToIndex(text)
         self.plotter_.addYDataIndex(index)
+        self.lineEditLegendText.addSelectBoxItem(text)
         self.addTextToList(self.listYAxisData, text)
     # clickedButtonAddYAxis
 
@@ -610,6 +620,7 @@ class Ui_GraphMaker(object):
         
         index = self.convertHeaderToIndex(text)
         self.plotter_.removeYDataIndex(index)
+        self.lineEditLegendText.removeSelectBoxItem(text)
         self.removeTextFromList(self.listYAxisData, text)
     # clickedButtonRemoveYAxis
 
@@ -729,6 +740,18 @@ class Ui_GraphMaker(object):
         if plotEnabled:
             self.plotGraph()
     # updateYAxisLimitValue
+
+    def changedCheckBoxLegendText(self, state):
+        self.plotter_.setLegendEnabled(self.lineEditLegendText.isChecked())
+        self.plotGraph()
+
+    def changedLineEditLegendText(self, text: str):
+        self.plotter_.setLegendTexts(self.lineEditLegendText.getDataList())
+        self.plotGraph()
+
+    def changedSliderLegendFontSize(self, value):
+        self.plotter_.setLegendFontSize(value)
+        self.plotGraph()
 
     def exportGraph(self):
         file_dialog = QFileDialog()

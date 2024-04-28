@@ -10,9 +10,9 @@ import numpy as np
 
 class GraphPlotter:   
     BIG_VALUE_ = 1e+10
+    DEFAULT_FONT_SIZE = 12
 
     class Axis:
-        DEFAULT_FONT_SIZE = 12
 
         class Limit:
             def __init__(self):
@@ -23,7 +23,7 @@ class GraphPlotter:
             # parameters
             self.label = ""
             self.limit = self.Limit()
-            self.fontSize = self.DEFAULT_FONT_SIZE
+            self.fontSize = GraphPlotter.DEFAULT_FONT_SIZE
             # データから先頭のデータを引くかどうか
             self.enabledOffsetRejection = False
 
@@ -32,6 +32,9 @@ class GraphPlotter:
             self.colors = []
             self.lineStyles = []
             self.lineWidth = 1
+            self.legendEnabled = False
+            self.legendTexts = []
+            self.legendFontSize = GraphPlotter.DEFAULT_FONT_SIZE
 
     def __init__(self):
         # global settings
@@ -98,6 +101,9 @@ class GraphPlotter:
             self.ax_.set_ylim(bottom=self.yAxis_.limit.min.value)
         if self.yAxis_.limit.max.enabled:
             self.ax_.set_ylim(top=self.yAxis_.limit.max.value)
+       
+        if self.plotParam_.legendEnabled:
+            self.ax_.legend(self.plotParam_.legendTexts, prop={"size": self.plotParam_.legendFontSize})
 
         # resize plot
         self.fig_.tight_layout()
@@ -150,6 +156,15 @@ class GraphPlotter:
 
     def setYAxisFontSize(self, size: int):
         self.yAxis_.fontSize = size
+
+    def setLegendEnabled(self, enabled: bool):
+        self.plotParam_.legendEnabled = enabled
+
+    def setLegendTexts(self, texts: list):
+        self.plotParam_.legendTexts = texts
+
+    def setLegendFontSize(self, size: int):
+        self.plotParam_.legendFontSize = size
 
     def getXDataRange(self):
         return self.xDataRange_

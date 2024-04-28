@@ -62,6 +62,12 @@ class my_widget:
         def isChecked(self):
             return self.label_.isChecked()
         
+        def getDataDict(self):
+            return self.dataDict_
+        
+        def getDataList(self):
+            return list(self.dataDict_.values())
+        
         def setCheckedCallback(self, fCheckedCallback):
             self.fCheckedCallback_ = fCheckedCallback
 
