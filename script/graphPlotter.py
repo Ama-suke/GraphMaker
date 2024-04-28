@@ -11,6 +11,7 @@ import numpy as np
 class GraphPlotter:   
     BIG_VALUE_ = 1e+10
     DEFAULT_FONT_SIZE = 12
+    DEFAULT_LINE_WIDTH = 1
 
     class Axis:
 
@@ -30,8 +31,8 @@ class GraphPlotter:
     class PlotParam:
         def __init__(self):
             self.colors = []
-            self.lineStyles = []
-            self.lineWidth = 1
+            self.lineStiles = []
+            self.lineWidth = []
             self.legendEnabled = False
             self.legendTexts = []
             self.legendFontSize = GraphPlotter.DEFAULT_FONT_SIZE
@@ -83,10 +84,14 @@ class GraphPlotter:
                 if len(self.xDataIndexes_) == 1:
                     # x軸が1つの場合はデータを共有する
                     xData = self.dataList_[self.xDataIndexes_[0]]
-                    self.ax_.plot(xData, yData)
+                    self.ax_.plot(xData, yData,\
+                                lw=self.plotParam_.lineWidth[i],\
+                                linestyle=self.plotParam_.lineStiles[i])
                 else:
                     xData = self.dataList_[self.xDataIndexes_[i]]
-                    self.ax_.plot(xData, yData)
+                    self.ax_.plot(xData, yData,\
+                                lw=self.plotParam_.lineWidth[i],\
+                                linestyle=self.plotParam_.lineStiles[i])
                 self.updateRange_(self.xDataRange_, xData)
                 self.updateRange_(self.yDataRange_, yData)
 
@@ -165,6 +170,12 @@ class GraphPlotter:
 
     def setLegendFontSize(self, size: int):
         self.plotParam_.legendFontSize = size
+
+    def setLineWidth(self, width: list):
+        self.plotParam_.lineWidth = width
+
+    def setLineStiles(self, stiles: list):
+        self.plotParam_.lineStiles = stiles
 
     def getXDataRange(self):
         return self.xDataRange_

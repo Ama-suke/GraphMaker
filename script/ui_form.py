@@ -32,6 +32,7 @@ from myWidgets.LabeledWidget import my_widget
 class Ui_GraphMaker(object):
     SLIDER_DOUBLE_RATIO = 1e5  # sliderの値をdoubleに変換するための倍率
     SPINBOX_Decimals = 5  # spinboxの小数点以下の桁数
+    LINE_STILE_MAP = {"Solid": "-", "Dashed": "--", "Dotted": ":", "DashDot": "-."}
 
     def setupUi(self, GraphMaker):
         if not GraphMaker.objectName():
@@ -42,6 +43,8 @@ class Ui_GraphMaker(object):
         GraphMaker.resize(900, 550)
         font = QFont()
         font.setPointSize(12)
+        # 初期設定のために最初に生成する
+        self.plotter_ = GraphPlotter()
         
         # layout settings begin --------------------------------------------
         # @brief window内のウィジェットのレイアウトを設定を行う
@@ -326,16 +329,22 @@ class Ui_GraphMaker(object):
         
         # objects
         # line width
-        self.sliderLineWidth = my_widget.LabeledSlider(self.groupBoxLine, False, False, False)
+        self.sliderLineWidth = my_widget.LabeledSlider(self.groupBoxLine, False, True, False)
         self.sliderLineWidth.setObjectName(u"SliderLineWidth")
         self.sliderLineWidth.setLabelText(QCoreApplication.translate("GraphMaker", u"Width:", None))
         self.sliderLineWidth.setRange(1, 10)
+        self.sliderLineWidth.setValueChangeCallback(self.changedSliderLineWidth)
+        self.sliderLineWidth.setValue(GraphPlotter.DEFAULT_LINE_WIDTH)
         # line color
         self.horizontalLayoutLineColor = QHBoxLayout()
         # line stile
         self.comboBoxLineStile = my_widget.LabeledComboBox(self.groupBoxLine, False, True)
         self.comboBoxLineStile.setObjectName(u"ComboBoxLineStile")
         self.comboBoxLineStile.setLabelText(QCoreApplication.translate("GraphMaker", u"Stile:", None))
+        self.comboBoxLineStile.setComboBoxCallback(self.changedComboBoxLineStile)
+        # line stile items
+        for key in self.LINE_STILE_MAP.keys():
+            self.comboBoxLineStile.addComboBoxItem(QCoreApplication.translate("GraphMaker", key, None))
         
         # layout
         self.verticalLayoutLine.addLayout(self.sliderLineWidth.getLayout())
@@ -416,7 +425,6 @@ class Ui_GraphMaker(object):
         self.verticalLayoutPreview = QVBoxLayout(self.groupBoxPreview)
         self.verticalLayoutPreview.setObjectName(u"VerticalLayoutPreview")
         # objects
-        self.plotter_ = GraphPlotter()
         self.figureCanvasPlotPreview = FigureCanvas(self.plotter_.getFigure())
         self.horizontalLayoutPreviewButton = QHBoxLayout()
         # layout
@@ -562,6 +570,8 @@ class Ui_GraphMaker(object):
         self.listYAxisData.clear()
         self.listDataList.addItem("No data")
         self.lineEditLegendText.clearSelectBox()
+        self.sliderLineWidth.clearSelectBox()
+        self.comboBoxLineStile.clearSelectBox()
         self.dataList_ = {}
         
         self.plotter_.clear()
@@ -603,9 +613,22 @@ class Ui_GraphMaker(object):
             # リストにすでに存在する場合は追加しない
             return
 
+        # データの設定
         index = self.convertHeaderToIndex(text)
         self.plotter_.addYDataIndex(index)
+
+        # レジェンド、ライン幅、ラインスタイルの初期設定
         self.lineEditLegendText.addSelectBoxItem(text)
+        self.sliderLineWidth.addSelectBoxItem(text)
+        self.comboBoxLineStile.addSelectBoxItem(text)
+
+        # デフォルト値を設定
+        self.sliderLineWidth.setData(text, GraphPlotter.DEFAULT_LINE_WIDTH)
+        self.comboBoxLineStile.setData(text, 0)
+
+        # プロットへの反映
+        self.changedSliderLineWidth(GraphPlotter.DEFAULT_LINE_WIDTH)
+        self.changedComboBoxLineStile(0)
         self.addTextToList(self.listYAxisData, text)
     # clickedButtonAddYAxis
 
@@ -621,6 +644,8 @@ class Ui_GraphMaker(object):
         index = self.convertHeaderToIndex(text)
         self.plotter_.removeYDataIndex(index)
         self.lineEditLegendText.removeSelectBoxItem(text)
+        self.sliderLineWidth.removeSelectBoxItem(text)
+        self.comboBoxLineStile.removeSelectBoxItem(text)
         self.removeTextFromList(self.listYAxisData, text)
     # clickedButtonRemoveYAxis
 
@@ -671,12 +696,16 @@ class Ui_GraphMaker(object):
     # setYAxisFontSize
 
     def plotGraph(self):
-        plt.cla()
-        
-        self.plotter_.plot()
-        self.figureCanvasPlotPreview.draw()
+        try:
+            plt.cla()
+            
+            self.plotter_.plot()
+            self.figureCanvasPlotPreview.draw()
 
-        self.updatePlotDataRange()
+            self.updatePlotDataRange()
+        except:
+            # ラインのスタイルなどが設定されていない場合
+            pass
     # plotGraph
 
     def updatePlotDataRange(self):
@@ -744,14 +773,31 @@ class Ui_GraphMaker(object):
     def changedCheckBoxLegendText(self, state):
         self.plotter_.setLegendEnabled(self.lineEditLegendText.isChecked())
         self.plotGraph()
+    # changedCheckBoxLegendText
 
     def changedLineEditLegendText(self, text: str):
         self.plotter_.setLegendTexts(self.lineEditLegendText.getDataList())
         self.plotGraph()
+    # changedLineEditLegendText
 
     def changedSliderLegendFontSize(self, value):
         self.plotter_.setLegendFontSize(value)
         self.plotGraph()
+    # changedSliderLegendFontSize
+
+    def changedSliderLineWidth(self, value):
+        self.plotter_.setLineWidth(self.sliderLineWidth.getDataList())
+        self.plotGraph()
+    # changedSliderLineWidth
+
+    def changedComboBoxLineStile(self, index):
+        lineStileSymbol = []
+        for lineStileIndex in self.comboBoxLineStile.getDataList():
+            lineStileText = self.comboBoxLineStile.getComboBoxText(lineStileIndex)
+            lineStileSymbol.append(self.LINE_STILE_MAP[lineStileText])
+        self.plotter_.setLineStiles(lineStileSymbol)
+        self.plotGraph()
+    # changedComboBoxLineStile
 
     def exportGraph(self):
         file_dialog = QFileDialog()

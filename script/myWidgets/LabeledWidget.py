@@ -53,6 +53,9 @@ class my_widget:
         def setLabelText(self, text: str):
             self.label_.setText(text)
 
+        def setData(self, key: str, data):
+            self.dataDict_[key] = data
+
         def getLabel(self):
             return self.label_
         
@@ -244,7 +247,7 @@ class my_widget:
             self.comboBox_.currentIndexChanged.connect(self.comboBoxChangedCallback_)
 
             # callback
-            self.fSelectBoxCallback_ = None
+            self.fComboBoxCallback_ = None
 
         def addSelectBoxItem(self, text: str):
             super().addSelectBoxItem(text)
@@ -259,11 +262,20 @@ class my_widget:
         def clearComboBox(self):
             self.comboBox_.clear()
 
+        def setCurrentComboBoxIndex(self, index):
+            self.comboBox_.setCurrentIndex(index)
+
         def getCurrentComboBoxIndex(self):
             return self.comboBox_.currentIndex()
         
         def getCurrentComboBoxText(self):
             return self.comboBox_.currentText()
+        
+        def getComboBoxText(self, index):
+            return self.comboBox_.itemText(index)
+        
+        def setComboBoxCallback(self, fComboBoxCallback):
+            self.fComboBoxCallback_ = fComboBoxCallback
 
         # private:
         def selectBoxChangedCallback_(self, index):
@@ -281,5 +293,5 @@ class my_widget:
                 # チェックボックスがチェックされていないときはコールバックを呼ばない
                 return
 
-            if self.fSelectBoxCallback_ is not None:
-                self.fSelectBoxCallback_(index)
+            if self.fComboBoxCallback_ is not None:
+                self.fComboBoxCallback_(index)
