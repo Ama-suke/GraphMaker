@@ -12,7 +12,7 @@ class GraphPlotter:
     BIG_VALUE_ = 1e+10
 
     class Axis:
-        defaultFontSize = 12
+        DEFAULT_FONT_SIZE = 12
 
         class Limit:
             def __init__(self):
@@ -23,7 +23,7 @@ class GraphPlotter:
             # parameters
             self.label = ""
             self.limit = self.Limit()
-            self.fontSize = self.defaultFontSize
+            self.fontSize = self.DEFAULT_FONT_SIZE
             # データから先頭のデータを引くかどうか
             self.enabledOffsetRejection = False
 

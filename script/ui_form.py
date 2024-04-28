@@ -26,6 +26,7 @@ import csv
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from graphPlotter import GraphPlotter 
+from myWidgets.LabeledWidget import my_widget
 
 
 class Ui_GraphMaker(object):
@@ -34,560 +35,464 @@ class Ui_GraphMaker(object):
 
     def setupUi(self, GraphMaker):
         if not GraphMaker.objectName():
-            GraphMaker.setObjectName(u"GraphMaker")
+            GraphMaker.setObjectName(u"MainWindow")
+
+        # settings
+        GraphMaker.setWindowTitle(QCoreApplication.translate("GraphMaker", u"GraphMaker", None))
         GraphMaker.resize(900, 550)
-        self.actionLoadTable = QAction(GraphMaker)
-        self.actionLoadTable.setObjectName(u"actionLoadTable") 
-        self.actionClearTable = QAction(GraphMaker)
-        self.actionClearTable.setObjectName(u"actionClearTable")
-        self.actionLoadSetting = QAction(GraphMaker)
-        self.actionLoadSetting.setObjectName(u"actionLoadSetting")
-        self.actionSaveSetting = QAction(GraphMaker)
-        self.actionSaveSetting.setObjectName(u"actionSaveSetting")
-        self.actionUserManual = QAction(GraphMaker)
-        self.actionUserManual.setObjectName(u"actionUserManual")
-        self.centralwidget = QWidget(GraphMaker)
-        self.centralwidget.setObjectName(u"centralwidget")
-        self.horizontalLayout = QHBoxLayout(self.centralwidget)
-        self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.verticalLayout_2 = QVBoxLayout()
-        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
-        self.tabWidget = QTabWidget(self.centralwidget)
-        self.tabWidget.setObjectName(u"tabWidget")
-        self.tabWidget.setMaximumSize(QSize(400, 16777215))
         font = QFont()
         font.setPointSize(12)
+        
+        # layout settings begin --------------------------------------------
+        # @brief window内のウィジェットのレイアウトを設定を行う
+        # @description 
+        # 現在の階層に必要なオブジェクトを列挙して先にレイアウトを設定する
+        # 各オブジェクトの実装は下に書く
+
+        # main window
+        # setting
+        self.centralWidget = QWidget(GraphMaker)
+        self.centralWidget.setObjectName(u"CentralWidget")
+        self.horizontalLayout = QHBoxLayout(self.centralWidget)
+        self.horizontalLayout.setObjectName(u"HorizontalLayoutMain")
+
+        # objects
+        self.tabWidget = QTabWidget(self.centralWidget)
+        self.groupBoxPreview = QGroupBox(self.centralWidget)
+
+        # layout
+        self.horizontalLayout.addWidget(self.tabWidget)
+        self.horizontalLayout.addWidget(self.groupBoxPreview)
+
+        # tab widget begin ------------------------------------------------
+        # setting
+        self.tabWidget.setObjectName(u"TabWidget")
+        self.tabWidget.setMaximumSize(QSize(400, 16777215))
         self.tabWidget.setFont(font)
+        self.tabWidget.setCurrentIndex(0)
+
+        # objects
         self.tabDataSelector = QWidget()
-        self.tabDataSelector.setObjectName(u"tabDataSelector")
-        self.horizontalLayout_14 = QHBoxLayout(self.tabDataSelector)
-        self.horizontalLayout_14.setObjectName(u"horizontalLayout_14")
+        self.tabAxis = QWidget()
+        self.tabPlot = QWidget()
+
+        # layout
+        self.tabWidget.addTab(self.tabDataSelector, "")
+        self.tabWidget.addTab(self.tabAxis, "")
+        self.tabWidget.addTab(self.tabPlot, "")
+
+        # data selector tab begin -----------------------------------------
+        # setting
+        self.tabDataSelector.setObjectName(u"TabDataSelector")
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabDataSelector), QCoreApplication.translate("GraphMaker", u"Data Selector", None))
+        self.horizontalLayoutDataSelectorTab = QHBoxLayout(self.tabDataSelector)
+        self.horizontalLayoutDataSelectorTab.setObjectName(u"HorizontalLayoutDataSelectorTab")
+
+        # objects
         self.listDataList = QListWidget(self.tabDataSelector)
+        self.verticalLayoutAddAxisButton = QVBoxLayout()
+        self.verticalLayoutSelectedAxis = QVBoxLayout()
+
+        # layout
+        self.horizontalLayoutDataSelectorTab.addWidget(self.listDataList)
+        self.horizontalLayoutDataSelectorTab.addLayout(self.verticalLayoutAddAxisButton)
+        self.horizontalLayoutDataSelectorTab.addLayout(self.verticalLayoutSelectedAxis)
+
+        # data list begin -------------------------------------------------
+        # setting
         QListWidgetItem(self.listDataList)
-        self.listDataList.setObjectName(u"listDataList")
+        self.listDataList.setObjectName(u"ListDataList")
         self.listDataList.setMinimumSize(QSize(170, 0))
         self.listDataList.setMaximumSize(QSize(16777215, 16777215))
+        __sortingEnabled = self.listDataList.isSortingEnabled()
+        self.listDataList.setSortingEnabled(False)
+        ___qlistwidgetitem = self.listDataList.item(0)
+        ___qlistwidgetitem.setText(QCoreApplication.translate("GraphMaker", u"No data", None))
+        self.listDataList.setSortingEnabled(__sortingEnabled)
+        # objects
+        # layout
 
-        self.horizontalLayout_14.addWidget(self.listDataList)
+        # callback
+        self.listDataList.doubleClicked.connect(self.doubleClickedListDataList)
+        # data list end ---------------------------------------------------
+        
+        # data selector buttons begin -------------------------------------
+        # setting
+        self.verticalLayoutAddAxisButton.setObjectName(u"VerticalLayoutAddAxisButton")
 
-        self.verticalLayout_9 = QVBoxLayout()
-        self.verticalLayout_9.setObjectName(u"verticalLayout_9")
-        self.verticalSpacer_4 = QSpacerItem(20, 30, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
-
-        self.verticalLayout_9.addItem(self.verticalSpacer_4)
-
+        # objects
+        self.verticalSpacerAddAxisButtonTop = QSpacerItem(20, 30, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+        self.verticalSpacerAddAxisButtonMiddle = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        self.verticalSpacerAddAxisButtonBottom = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
         self.buttonAddXAxis = QPushButton(self.tabDataSelector)
-        self.buttonAddXAxis.setObjectName(u"buttonAddXAxis")
+        self.buttonAddYAxis = QPushButton(self.tabDataSelector)
+        self.buttonRemoveYAxis = QPushButton(self.tabDataSelector)
+
+        # layout
+        self.verticalLayoutAddAxisButton.addItem(self.verticalSpacerAddAxisButtonTop)
+        self.verticalLayoutAddAxisButton.addWidget(self.buttonAddXAxis)
+        self.verticalLayoutAddAxisButton.addItem(self.verticalSpacerAddAxisButtonMiddle)
+        self.verticalLayoutAddAxisButton.addWidget(self.buttonAddYAxis)
+        self.verticalLayoutAddAxisButton.addWidget(self.buttonRemoveYAxis)
+        self.verticalLayoutAddAxisButton.addItem(self.verticalSpacerAddAxisButtonBottom)
+
+        # size policy
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.buttonAddXAxis.sizePolicy().hasHeightForWidth())
+        # x axis add button
+        self.buttonAddXAxis.setObjectName(u"ButtonAddXAxis")
         self.buttonAddXAxis.setSizePolicy(sizePolicy)
+        self.buttonAddXAxis.setText(QCoreApplication.translate("GraphMaker", u"\u2192", None))
         self.buttonAddXAxis.setMaximumSize(QSize(30, 20))
-
-        self.verticalLayout_9.addWidget(self.buttonAddXAxis)
-
-        self.verticalSpacer_3 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-
-        self.verticalLayout_9.addItem(self.verticalSpacer_3)
-
-        self.buttonAddYAxis = QPushButton(self.tabDataSelector)
-        self.buttonAddYAxis.setObjectName(u"buttonAddYAxis")
+        self.buttonAddXAxis.clicked.connect(self.clickedButtonAddXAxis)
+        # y axis add button
+        self.buttonAddYAxis.setObjectName(u"ButtonAddYAxis")
+        self.buttonAddYAxis.setText(QCoreApplication.translate("GraphMaker", u"\u2192", None))
         sizePolicy.setHeightForWidth(self.buttonAddYAxis.sizePolicy().hasHeightForWidth())
         self.buttonAddYAxis.setSizePolicy(sizePolicy)
         self.buttonAddYAxis.setMaximumSize(QSize(30, 20))
-
-        self.verticalLayout_9.addWidget(self.buttonAddYAxis)
-
-        self.buttonRemoveYAxis = QPushButton(self.tabDataSelector)
-        self.buttonRemoveYAxis.setObjectName(u"buttonRemoveYAxis")
+        self.buttonAddYAxis.clicked.connect(self.clickedButtonAddYAxis)
+        # y axis remove button
+        self.buttonRemoveYAxis.setObjectName(u"ButtonRemoveYAxis")
+        self.buttonRemoveYAxis.setText(QCoreApplication.translate("GraphMaker", u"\u2190", None))
         sizePolicy.setHeightForWidth(self.buttonRemoveYAxis.sizePolicy().hasHeightForWidth())
         self.buttonRemoveYAxis.setSizePolicy(sizePolicy)
         self.buttonRemoveYAxis.setMaximumSize(QSize(30, 20))
+        self.buttonRemoveYAxis.clicked.connect(self.clickedButtonRemoveYAxis)
+        # data selector buttons end ---------------------------------------
 
-        self.verticalLayout_9.addWidget(self.buttonRemoveYAxis)
+        # selected axis begin ---------------------------------------------
+        # setting
+        self.verticalLayoutSelectedAxis.setObjectName(u"VerticalLayoutSelectedAxis")
 
-        self.verticalSpacer_5 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-
-        self.verticalLayout_9.addItem(self.verticalSpacer_5)
-
-
-        self.horizontalLayout_14.addLayout(self.verticalLayout_9)
-
-        self.verticalLayout_3 = QVBoxLayout()
-        self.verticalLayout_3.setObjectName(u"verticalLayout_3")
-        self.label_10 = QLabel(self.tabDataSelector)
-        self.label_10.setObjectName(u"label_10")
-
-        self.verticalLayout_3.addWidget(self.label_10)
-
+        # objects
+        self.labelDataSelectorXAxis = QLabel(self.tabDataSelector)
+        self.labelDataSelectorXAxis.setText(QCoreApplication.translate("GraphMaker", u"X axis", None))
+        self.labelDataSelectorYAxis = QLabel(self.tabDataSelector)
+        self.labelDataSelectorYAxis.setText(QCoreApplication.translate("GraphMaker", u"Y axis", None))
         self.listXAxisData = QListWidget(self.tabDataSelector)
-        self.listXAxisData.setObjectName(u"listXAxisData")
+        self.listYAxisData = QListWidget(self.tabDataSelector)
+
+        # layout
+        self.verticalLayoutSelectedAxis.addWidget(self.labelDataSelectorXAxis)
+        self.verticalLayoutSelectedAxis.addWidget(self.listXAxisData)
+        self.verticalLayoutSelectedAxis.addWidget(self.labelDataSelectorYAxis)
+        self.verticalLayoutSelectedAxis.addWidget(self.listYAxisData)
+
+        # x axis label
+        self.labelDataSelectorXAxis.setObjectName(u"LabelDataSelectorXAxis")
+        # x axis list
+        self.listXAxisData.setObjectName(u"ListXAxisData")
         sizePolicy.setHeightForWidth(self.listXAxisData.sizePolicy().hasHeightForWidth())
         self.listXAxisData.setSizePolicy(sizePolicy)
         self.listXAxisData.setMaximumSize(QSize(16777215, 25))
-
-        self.verticalLayout_3.addWidget(self.listXAxisData)
-
-        self.label_9 = QLabel(self.tabDataSelector)
-        self.label_9.setObjectName(u"label_9")
-
-        self.verticalLayout_3.addWidget(self.label_9)
-
-        self.listYAxisData = QListWidget(self.tabDataSelector)
-        self.listYAxisData.setObjectName(u"listYAxisData")
+        self.listXAxisData.doubleClicked.connect(self.doubleClickedListXAxisData)
+        # y axis label
+        self.labelDataSelectorYAxis.setObjectName(u"LabelDataSelectorYAxis")
+        # y axis list
+        self.listYAxisData.setObjectName(u"ListYAxisData")
         self.listYAxisData.setMaximumSize(QSize(16777215, 16777215))
-
-        self.verticalLayout_3.addWidget(self.listYAxisData)
-
-
-        self.horizontalLayout_14.addLayout(self.verticalLayout_3)
-
-        self.tabWidget.addTab(self.tabDataSelector, "")
-        self.tabAxis = QWidget()
-        self.tabAxis.setObjectName(u"tabAxis")
-        self.verticalLayout_4 = QVBoxLayout(self.tabAxis)
-        self.verticalLayout_4.setObjectName(u"verticalLayout_4")
-        self.groupBox = QGroupBox(self.tabAxis)
-        self.groupBox.setObjectName(u"groupBox")
-        self.verticalLayout_5 = QVBoxLayout(self.groupBox)
-        self.verticalLayout_5.setObjectName(u"verticalLayout_5")
-        self.horizontalLayout_3 = QHBoxLayout()
-        self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
-        self.label = QLabel(self.groupBox)
-        self.label.setObjectName(u"label")
-        sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
-        self.label.setSizePolicy(sizePolicy)
-        self.label.setMinimumSize(QSize(90, 0))
-
-        self.horizontalLayout_3.addWidget(self.label)
-
-        self.lineEditXAxisText = QLineEdit(self.groupBox)
-        self.lineEditXAxisText.setObjectName(u"lineEditXAxisText")
-
-        self.horizontalLayout_3.addWidget(self.lineEditXAxisText)
-
-
-        self.verticalLayout_5.addLayout(self.horizontalLayout_3)
-
-        self.horizontalLayout_2 = QHBoxLayout()
-        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
-        self.label_2 = QLabel(self.groupBox)
-        self.label_2.setObjectName(u"label_2")
-        self.label_2.setMinimumSize(QSize(90, 0))
-
-        self.horizontalLayout_2.addWidget(self.label_2)
-
-        self.sliderXAxisFontSize = QSlider(self.groupBox)
-        self.sliderXAxisFontSize.setObjectName(u"sliderXAxisFontSize")
-        self.sliderXAxisFontSize.setOrientation(Qt.Horizontal)
-        self.sliderXAxisFontSize.setValue(GraphPlotter.Axis.defaultFontSize)
-
-        self.horizontalLayout_2.addWidget(self.sliderXAxisFontSize)
-
-        self.spinBoxXAxisFontSize = QSpinBox(self.groupBox)
-        self.spinBoxXAxisFontSize.setObjectName(u"spinBoxXAxisFontSize")
-        self.spinBoxXAxisFontSize.setValue(GraphPlotter.Axis.defaultFontSize)
-
-        self.horizontalLayout_2.addWidget(self.spinBoxXAxisFontSize)
-
-
-        self.verticalLayout_5.addLayout(self.horizontalLayout_2)
-
-        self.horizontalLayout_4 = QHBoxLayout()
-        self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
-        self.checkBoxXAxisMinLimit = QCheckBox(self.groupBox)
-        self.checkBoxXAxisMinLimit.setObjectName(u"checkBoxXAxisMinLimit")
-        self.checkBoxXAxisMinLimit.setMinimumSize(QSize(90, 0))
-
-        self.horizontalLayout_4.addWidget(self.checkBoxXAxisMinLimit)
-
-        self.sliderXAxisMinLimit = QSlider(self.groupBox)
-        self.sliderXAxisMinLimit.setObjectName(u"sliderXAxisMinLimit")
-        self.sliderXAxisMinLimit.setOrientation(Qt.Horizontal)
-
-        self.horizontalLayout_4.addWidget(self.sliderXAxisMinLimit)
-
-        self.spinBoxXAxisMinLimit = QDoubleSpinBox(self.groupBox)
-        self.spinBoxXAxisMinLimit.setObjectName(u"spinBoxXAxisMinLimit")
-        self.spinBoxXAxisMinLimit.setDecimals(self.SPINBOX_Decimals)
-
-        self.horizontalLayout_4.addWidget(self.spinBoxXAxisMinLimit)
-
-
-        self.verticalLayout_5.addLayout(self.horizontalLayout_4)
-
-        self.horizontalLayout_5 = QHBoxLayout()
-        self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
-        self.checkBoxXAxisMaxLimit = QCheckBox(self.groupBox)
-        self.checkBoxXAxisMaxLimit.setObjectName(u"checkBoxXAxisMaxLimit")
-        self.checkBoxXAxisMaxLimit.setMinimumSize(QSize(90, 0))
-
-        self.horizontalLayout_5.addWidget(self.checkBoxXAxisMaxLimit)
-
-        self.sliderXAxisMaxLimit = QSlider(self.groupBox)
-        self.sliderXAxisMaxLimit.setObjectName(u"sliderXAxiMaxLimit")
-        self.sliderXAxisMaxLimit.setOrientation(Qt.Horizontal)
-
-        self.horizontalLayout_5.addWidget(self.sliderXAxisMaxLimit)
-
-        self.SpinBoxXAxisMaxLimit = QDoubleSpinBox(self.groupBox)
-        self.SpinBoxXAxisMaxLimit.setObjectName(u"SpinBoxXAxisMaxLimit")
-        self.SpinBoxXAxisMaxLimit.setDecimals(self.SPINBOX_Decimals)
-
-        self.horizontalLayout_5.addWidget(self.SpinBoxXAxisMaxLimit)
-
-
-        self.verticalLayout_5.addLayout(self.horizontalLayout_5)
-
-
-        self.verticalLayout_4.addWidget(self.groupBox)
-
-        self.groupBox_3 = QGroupBox(self.tabAxis)
-        self.groupBox_3.setObjectName(u"groupBox_3")
-        self.verticalLayout_7 = QVBoxLayout(self.groupBox_3)
-        self.verticalLayout_7.setObjectName(u"verticalLayout_7")
-        self.horizontalLayout_6 = QHBoxLayout()
-        self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
-        self.label_4 = QLabel(self.groupBox_3)
-        self.label_4.setObjectName(u"label_4")
-        sizePolicy.setHeightForWidth(self.label_4.sizePolicy().hasHeightForWidth())
-        self.label_4.setSizePolicy(sizePolicy)
-        self.label_4.setMinimumSize(QSize(90, 0))
-
-        self.horizontalLayout_6.addWidget(self.label_4)
-
-        self.lineEditYAxisText = QLineEdit(self.groupBox_3)
-        self.lineEditYAxisText.setObjectName(u"lineEditYAxisText")
-
-        self.horizontalLayout_6.addWidget(self.lineEditYAxisText)
-
-
-        self.verticalLayout_7.addLayout(self.horizontalLayout_6)
-
-        self.horizontalLayout_7 = QHBoxLayout()
-        self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
-        self.label_5 = QLabel(self.groupBox_3)
-        self.label_5.setObjectName(u"label_5")
-        self.label_5.setMinimumSize(QSize(90, 0))
-
-        self.horizontalLayout_7.addWidget(self.label_5)
-
-        self.sliderYAxisFontSize = QSlider(self.groupBox_3)
-        self.sliderYAxisFontSize.setObjectName(u"sliderYAxisFontSize")
-        self.sliderYAxisFontSize.setOrientation(Qt.Horizontal)
-        self.sliderYAxisFontSize.setValue(GraphPlotter.Axis.defaultFontSize)
-
-        self.horizontalLayout_7.addWidget(self.sliderYAxisFontSize)
-
-        self.spinBoxYAxisFontSize = QSpinBox(self.groupBox_3)
-        self.spinBoxYAxisFontSize.setObjectName(u"spinBoxYAxisFontSize")
-        self.spinBoxYAxisFontSize.setValue(GraphPlotter.Axis.defaultFontSize)
-
-        self.horizontalLayout_7.addWidget(self.spinBoxYAxisFontSize)
-
-
-        self.verticalLayout_7.addLayout(self.horizontalLayout_7)
-
-        self.horizontalLayout_8 = QHBoxLayout()
-        self.horizontalLayout_8.setObjectName(u"horizontalLayout_8")
-        self.checkBoxYAxisMinLimit = QCheckBox(self.groupBox_3)
-        self.checkBoxYAxisMinLimit.setObjectName(u"checkBoxYAxisMinLimit")
-        self.checkBoxYAxisMinLimit.setMinimumSize(QSize(90, 0))
-
-        self.horizontalLayout_8.addWidget(self.checkBoxYAxisMinLimit)
-
-        self.sliderYAxisMinLimit = QSlider(self.groupBox_3)
-        self.sliderYAxisMinLimit.setObjectName(u"sliderYAxisMinLimit")
-        self.sliderYAxisMinLimit.setOrientation(Qt.Horizontal)
-
-        self.horizontalLayout_8.addWidget(self.sliderYAxisMinLimit)
-
-        self.spinBoxYAxisMinLimit = QDoubleSpinBox(self.groupBox_3)
-        self.spinBoxYAxisMinLimit.setObjectName(u"spinBoxYAxisMinLimit")
-        self.spinBoxYAxisMinLimit.setDecimals(self.SPINBOX_Decimals)
-
-        self.horizontalLayout_8.addWidget(self.spinBoxYAxisMinLimit)
-
-
-        self.verticalLayout_7.addLayout(self.horizontalLayout_8)
-
-        self.horizontalLayout_9 = QHBoxLayout()
-        self.horizontalLayout_9.setObjectName(u"horizontalLayout_9")
-        self.checkBoxYAxisMaxLimit = QCheckBox(self.groupBox_3)
-        self.checkBoxYAxisMaxLimit.setObjectName(u"checkBoxYAxisMaxLimit")
-        self.checkBoxYAxisMaxLimit.setMinimumSize(QSize(90, 0))
-
-        self.horizontalLayout_9.addWidget(self.checkBoxYAxisMaxLimit)
-
-        self.sliderYAxisMaxLimit = QSlider(self.groupBox_3)
-        self.sliderYAxisMaxLimit.setObjectName(u"sliderYAxisMaxLimit")
-        self.sliderYAxisMaxLimit.setOrientation(Qt.Horizontal)
-
-        self.horizontalLayout_9.addWidget(self.sliderYAxisMaxLimit)
-
-        self.spinBoxYAxisMaxLimit = QDoubleSpinBox(self.groupBox_3)
-        self.spinBoxYAxisMaxLimit.setObjectName(u"spinBoxYAxisMaxLimit")
-        self.spinBoxYAxisMaxLimit.setDecimals(self.SPINBOX_Decimals)
-
-        self.horizontalLayout_9.addWidget(self.spinBoxYAxisMaxLimit)
-
-
-        self.verticalLayout_7.addLayout(self.horizontalLayout_9)
-
-
-        self.verticalLayout_4.addWidget(self.groupBox_3)
-
-        self.verticalSpacer_2 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-
-        self.verticalLayout_4.addItem(self.verticalSpacer_2)
-
-        self.tabWidget.addTab(self.tabAxis, "")
-        self.tabPlot = QWidget()
-        self.tabPlot.setObjectName(u"tabPlot")
-        self.verticalLayout_8 = QVBoxLayout(self.tabPlot)
-        self.verticalLayout_8.setObjectName(u"verticalLayout_8")
-        self.groupBox_2 = QGroupBox(self.tabPlot)
-        self.groupBox_2.setObjectName(u"groupBox_2")
-        self.groupBox_2.setFont(font)
-        self.verticalLayout = QVBoxLayout(self.groupBox_2)
-        self.verticalLayout.setObjectName(u"verticalLayout")
-        self.horizontalLayout_11 = QHBoxLayout()
-        self.horizontalLayout_11.setObjectName(u"horizontalLayout_11")
-        self.label_6 = QLabel(self.groupBox_2)
-        self.label_6.setObjectName(u"label_6")
-        sizePolicy.setHeightForWidth(self.label_6.sizePolicy().hasHeightForWidth())
-        self.label_6.setSizePolicy(sizePolicy)
-        self.label_6.setMinimumSize(QSize(80, 0))
-        self.label_6.setFont(font)
-
-        self.horizontalLayout_11.addWidget(self.label_6)
-
-        self.sliderLineWidth = QSlider(self.groupBox_2)
-        self.sliderLineWidth.setObjectName(u"sliderLineWidth")
-        self.sliderLineWidth.setFont(font)
-        self.sliderLineWidth.setOrientation(Qt.Horizontal)
-
-        self.horizontalLayout_11.addWidget(self.sliderLineWidth)
-
-        self.spinBoxLineWidth = QSpinBox(self.groupBox_2)
-        self.spinBoxLineWidth.setObjectName(u"spinBoxLineWidth")
-        self.spinBoxLineWidth.setFont(font)
-
-        self.horizontalLayout_11.addWidget(self.spinBoxLineWidth)
-
-
-        self.verticalLayout.addLayout(self.horizontalLayout_11)
-
-        self.horizontalLayout_12 = QHBoxLayout()
-        self.horizontalLayout_12.setObjectName(u"horizontalLayout_12")
-        self.label_7 = QLabel(self.groupBox_2)
-        self.label_7.setObjectName(u"label_7")
-        sizePolicy.setHeightForWidth(self.label_7.sizePolicy().hasHeightForWidth())
-        self.label_7.setSizePolicy(sizePolicy)
-        self.label_7.setMinimumSize(QSize(80, 0))
-        self.label_7.setFont(font)
-
-        self.horizontalLayout_12.addWidget(self.label_7)
-
-        self.comboBoxLineColorLine = QComboBox(self.groupBox_2)
-        self.comboBoxLineColorLine.setObjectName(u"comboBoxLineColorLine")
+        self.listYAxisData.doubleClicked.connect(self.doubleClickedListYAxisData)
+        # selected axis end -----------------------------------------------
+        # data selector tab end -------------------------------------------
+
+        # axis tab begin --------------------------------------------------
+        # setting
+        self.tabAxis.setObjectName(u"TabAxis")
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabAxis), QCoreApplication.translate("GraphMaker", u"Axis", None))
+        self.verticalLayoutAxisTab = QVBoxLayout(self.tabAxis)
+        self.verticalLayoutAxisTab.setObjectName(u"VerticalLayoutAxisTab")
+
+        # objects
+        self.groupBoxXAxis = QGroupBox(self.tabAxis)
+        self.groupBoxYAxis = QGroupBox(self.tabAxis)
+        self.verticalSpacerAxisTab = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+
+        # layout
+        self.verticalLayoutAxisTab.addWidget(self.groupBoxXAxis)
+        self.verticalLayoutAxisTab.addWidget(self.groupBoxYAxis)
+        self.verticalLayoutAxisTab.addItem(self.verticalSpacerAxisTab)
+
+        # x axis begin ----------------------------------------------------
+        # setting
+        self.groupBoxXAxis.setObjectName(u"GroupBoxXAxis")
+        self.groupBoxXAxis.setTitle(QCoreApplication.translate("GraphMaker", u"X axis", None))
+        self.verticalLayoutXAxis = QVBoxLayout(self.groupBoxXAxis)
+        self.verticalLayoutXAxis.setObjectName(u"VerticalLayoutXAxis")
+
+        # objects
+        # label
+        self.lineEditXAxisLabel = my_widget.LabeledLineEdit(self.groupBoxXAxis, False, False)
+        self.lineEditXAxisLabel.setObjectName(u"LineEditXAxisLabel")
+        self.lineEditXAxisLabel.setLabelText(QCoreApplication.translate("GraphMaker", u"Label:", None))
+        self.lineEditXAxisLabel.setTextChangedCallback(self.changedLineEditXAxisLabel)
+        # font size
+        self.sliderXAxisFontSize = my_widget.LabeledSlider(self.groupBoxXAxis, False, False, False)
+        self.sliderXAxisFontSize.setObjectName(u"SliderXAxisFontSize")
+        self.sliderXAxisFontSize.setLabelText(QCoreApplication.translate("GraphMaker", u"Font size:", None))
+        self.sliderXAxisFontSize.setValue(GraphPlotter.Axis.DEFAULT_FONT_SIZE)
+        self.sliderXAxisFontSize.setRange(1, 100)
+        self.sliderXAxisFontSize.setValueChangeCallback(self.setXAxisFontSize)
+        # min limit
+        self.sliderXAxisMinLimit = my_widget.LabeledSlider(self.groupBoxXAxis, True, False, True)
+        self.sliderXAxisMinLimit.setObjectName(u"SliderXAxisMinLimit")
+        self.sliderXAxisMinLimit.setLabelText(QCoreApplication.translate("GraphMaker", u"Min limit:", None))
+        self.sliderXAxisMinLimit.setRange(-1, 1)
+        self.sliderXAxisMinLimit.setValueChangeCallback(self.changedSliderXAxisLimit)
+        self.sliderXAxisMinLimit.setCheckedCallback(self.changedCheckBoxXAxisLimit)
+        # max limit
+        self.sliderXAxisMaxLimit = my_widget.LabeledSlider(self.groupBoxXAxis, True, False, True)
+        self.sliderXAxisMaxLimit.setObjectName(u"SliderXAxisMaxLimit")
+        self.sliderXAxisMaxLimit.setLabelText(QCoreApplication.translate("GraphMaker", u"Max limit:", None))
+        self.sliderXAxisMaxLimit.setRange(-1, 1)
+        self.sliderXAxisMaxLimit.setValueChangeCallback(self.changedSliderXAxisLimit)
+        self.sliderXAxisMaxLimit.setCheckedCallback(self.changedCheckBoxXAxisLimit)
+
+        # layout
+        self.verticalLayoutXAxis.addLayout(self.lineEditXAxisLabel.getLayout())
+        self.verticalLayoutXAxis.addLayout(self.sliderXAxisFontSize.getLayout())
+        self.verticalLayoutXAxis.addLayout(self.sliderXAxisMinLimit.getLayout())
+        self.verticalLayoutXAxis.addLayout(self.sliderXAxisMaxLimit.getLayout())
+        # x axis end ------------------------------------------------------
+        
+        # y axis begin ----------------------------------------------------
+        # setting
+        self.groupBoxYAxis.setObjectName(u"GroupBoxYAxis")
+        self.groupBoxYAxis.setTitle(QCoreApplication.translate("GraphMaker", u"Y axis", None))
+        self.verticalLayoutYAxis = QVBoxLayout(self.groupBoxYAxis)
+        self.verticalLayoutYAxis.setObjectName(u"VerticalLayoutYAxis")
+
+        # objects
+        # label
+        self.lineEditYAxisLabel = my_widget.LabeledLineEdit(self.groupBoxYAxis)
+        self.lineEditYAxisLabel.setObjectName(u"LineEditYAxisLabel")
+        self.lineEditYAxisLabel.setLabelText(QCoreApplication.translate("GraphMaker", u"Label:", None))
+        self.lineEditYAxisLabel.setTextChangedCallback(self.changedLineEditYAxisLabel)
+        # font size
+        self.sliderYAxisFontSize = my_widget.LabeledSlider  (self.groupBoxYAxis, False, False, False)
+        self.sliderYAxisFontSize.setObjectName(u"SliderYAxisFontSize")
+        self.sliderYAxisFontSize.setLabelText(QCoreApplication.translate("GraphMaker", u"Font size:", None))
+        self.sliderYAxisFontSize.setValue(GraphPlotter.Axis.DEFAULT_FONT_SIZE)
+        self.sliderYAxisFontSize.setRange(1, 100)
+        self.sliderYAxisFontSize.setValueChangeCallback(self.setYAxisFontSize)
+        # min limit
+        self.sliderYAxisMinLimit = my_widget.LabeledSlider(self.groupBoxYAxis, True, False, True)
+        self.sliderYAxisMinLimit.setObjectName(u"SliderYAxisMinLimit")
+        self.sliderYAxisMinLimit.setLabelText(QCoreApplication.translate("GraphMaker", u"Min limit:", None))
+        self.sliderYAxisMinLimit.setRange(-1, 1)
+        self.sliderYAxisMinLimit.setValueChangeCallback(self.changedSliderYAxisLimit)
+        self.sliderYAxisMinLimit.setCheckedCallback(self.changedCheckBoxYAxisLimit)
+        # max limit
+        self.sliderYAxisMaxLimit = my_widget.LabeledSlider(self.groupBoxYAxis, True, False, True)
+        self.sliderYAxisMaxLimit.setObjectName(u"SliderYAxisMaxLimit")
+        self.sliderYAxisMaxLimit.setLabelText(QCoreApplication.translate("GraphMaker", u"Max limit:", None))
+        self.sliderYAxisMaxLimit.setRange(-1, 1)
+        self.sliderYAxisMaxLimit.setValueChangeCallback(self.changedSliderYAxisLimit)
+        self.sliderYAxisMaxLimit.setCheckedCallback(self.changedCheckBoxYAxisLimit)
+
+        # layout
+        self.verticalLayoutYAxis.addLayout(self.lineEditYAxisLabel.getLayout())
+        self.verticalLayoutYAxis.addLayout(self.sliderYAxisFontSize.getLayout())
+        self.verticalLayoutYAxis.addLayout(self.sliderYAxisMinLimit.getLayout())
+        self.verticalLayoutYAxis.addLayout(self.sliderYAxisMaxLimit.getLayout())
+        # y axis end ------------------------------------------------------
+        # axis tab end ----------------------------------------------------
+
+        # plot tab begin --------------------------------------------------
+        # setting
+        self.tabPlot.setObjectName(u"TabPlot")
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabPlot), QCoreApplication.translate("GraphMaker", u"Plot", None))
+        self.verticalLayoutPlotTab = QVBoxLayout(self.tabPlot)
+        self.verticalLayoutPlotTab.setObjectName(u"VerticalLayoutPlotTab")
+
+        # objects
+        self.groupBoxLine = QGroupBox(self.tabPlot)
+        self.groupBoxLegend = QGroupBox(self.tabPlot)
+        self.verticalSpacerPlotTab = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding) 
+        # layout
+        self.verticalLayoutPlotTab.addWidget(self.groupBoxLine)
+        self.verticalLayoutPlotTab.addWidget(self.groupBoxLegend)
+        self.verticalLayoutPlotTab.addItem(self.verticalSpacerPlotTab)
+
+        # line begin ------------------------------------------------------
+        # setting
+        self.groupBoxLine.setObjectName(u"GroupBoxLine")
+        self.groupBoxLine.setTitle(QCoreApplication.translate("GraphMaker", u"Line", None))
+        self.groupBoxLine.setFont(font)
+        self.verticalLayoutLine = QVBoxLayout(self.groupBoxLine)
+        self.verticalLayoutLine.setObjectName(u"VerticalLayoutLine")
+        
+        # objects
+        # line width
+        self.sliderLineWidth = my_widget.LabeledSlider(self.groupBoxLine, False, False, False)
+        self.sliderLineWidth.setObjectName(u"SliderLineWidth")
+        self.sliderLineWidth.setLabelText(QCoreApplication.translate("GraphMaker", u"Width:", None))
+        self.sliderLineWidth.setRange(1, 10)
+        # line color
+        self.horizontalLayoutLineColor = QHBoxLayout()
+        # line stile
+        self.comboBoxLineStile = my_widget.LabeledComboBox(self.groupBoxLine, False, True)
+        self.comboBoxLineStile.setObjectName(u"ComboBoxLineStile")
+        self.comboBoxLineStile.setLabelText(QCoreApplication.translate("GraphMaker", u"Stile:", None))
+        
+        # layout
+        self.verticalLayoutLine.addLayout(self.sliderLineWidth.getLayout())
+        self.verticalLayoutLine.addLayout(self.horizontalLayoutLineColor)
+        self.verticalLayoutLine.addLayout(self.comboBoxLineStile.getLayout())
+
+        # line color begin -----------------------------------------------
+        # TODO: Line Colorに適切なwidgetを考える
+        self.horizontalLayoutLineColor.setObjectName(u"HorizontalLayoutLineColor")
+        self.labelLineColor = QLabel(self.groupBoxLine)
+        self.labelLineColor.setObjectName(u"LabelLineColor")
+        self.labelLineColor.setText(QCoreApplication.translate("GraphMaker", u"Color:", None))
+        sizePolicy.setHeightForWidth(self.labelLineColor.sizePolicy().hasHeightForWidth())
+        self.labelLineColor.setSizePolicy(sizePolicy)
+        self.labelLineColor.setMinimumSize(QSize(80, 0))
+        self.labelLineColor.setFont(font)
+        self.horizontalLayoutLineColor.addWidget(self.labelLineColor)
+        self.comboBoxLineColorLine = QComboBox(self.groupBoxLine)
+        self.comboBoxLineColorLine.setObjectName(u"ComboBoxLineColorLine")
         self.comboBoxLineColorLine.setFont(font)
-
-        self.horizontalLayout_12.addWidget(self.comboBoxLineColorLine)
-
-        self.paletteLineColor = QWidget(self.groupBox_2)
-        self.paletteLineColor.setObjectName(u"paletteLineColor")
+        self.horizontalLayoutLineColor.addWidget(self.comboBoxLineColorLine)
+        self.paletteLineColor = QWidget(self.groupBoxLine)
+        self.paletteLineColor.setObjectName(u"PaletteLineColor")
         sizePolicy.setHeightForWidth(self.paletteLineColor.sizePolicy().hasHeightForWidth())
         self.paletteLineColor.setSizePolicy(sizePolicy)
         self.paletteLineColor.setMinimumSize(QSize(20, 0))
+        self.horizontalLayoutLineColor.addWidget(self.paletteLineColor)
+        # line color end ------------------------------------------------
+        # line end -------------------------------------------------------
 
-        self.horizontalLayout_12.addWidget(self.paletteLineColor)
+        # legend begin ----------------------------------------------------
+        # setting
+        self.groupBoxLegend.setObjectName(u"GroupBoxLegend")
+        self.groupBoxLegend.setTitle(QCoreApplication.translate("GraphMaker", u"Legend", None))
+        self.groupBoxLegend.setFont(font)
+        self.verticalLayoutLegend = QVBoxLayout(self.groupBoxLegend)
+        self.verticalLayoutLegend.setObjectName(u"VerticalLayoutLegend")
+        
+        # objects
+        # font size
+        self.sliderLegendFontSize = my_widget.LabeledSlider(self.groupBoxLegend, False, False, False)
+        self.sliderLegendFontSize.setObjectName(u"SliderLegendFontSize")
+        self.sliderLegendFontSize.setLabelText(QCoreApplication.translate("GraphMaker", u"Font size:", None))
+        self.sliderLegendFontSize.setValue(GraphPlotter.Axis.DEFAULT_FONT_SIZE)
+        self.sliderLegendFontSize.setRange(1, 100)
+        # x position
+        self.sliderLegendXPosition = my_widget.LabeledSlider(self.groupBoxLegend, False, False, False)
+        self.sliderLegendXPosition.setObjectName(u"SliderLegendXPosition")
+        self.sliderLegendXPosition.setLabelText(QCoreApplication.translate("GraphMaker", u"X position:", None))
+        self.sliderLegendXPosition.setRange(0, 100)
+        # y position
+        self.sliderLegendYPosition = my_widget.LabeledSlider(self.groupBoxLegend, False, False, False)
+        self.sliderLegendYPosition.setObjectName(u"SliderLegendYPosition")
+        self.sliderLegendYPosition.setLabelText(QCoreApplication.translate("GraphMaker", u"Y position:", None))
+        self.sliderLegendYPosition.setRange(0, 100)
+        
+        # layout
+        self.verticalLayoutLegend.addLayout(self.sliderLegendFontSize.getLayout())
+        self.verticalLayoutLegend.addLayout(self.sliderLegendXPosition.getLayout())
+        self.verticalLayoutLegend.addLayout(self.sliderLegendYPosition.getLayout())
+        # legend end ------------------------------------------------------
+        # plot tab end ----------------------------------------------------
+        # tab widget end --------------------------------------------------
 
-
-        self.verticalLayout.addLayout(self.horizontalLayout_12)
-
-        self.horizontalLayout_13 = QHBoxLayout()
-        self.horizontalLayout_13.setObjectName(u"horizontalLayout_13")
-        self.label_8 = QLabel(self.groupBox_2)
-        self.label_8.setObjectName(u"label_8")
-        sizePolicy.setHeightForWidth(self.label_8.sizePolicy().hasHeightForWidth())
-        self.label_8.setSizePolicy(sizePolicy)
-        self.label_8.setMinimumSize(QSize(80, 0))
-        self.label_8.setFont(font)
-
-        self.horizontalLayout_13.addWidget(self.label_8)
-
-        self.comboBoxLineStileLine = QComboBox(self.groupBox_2)
-        self.comboBoxLineStileLine.setObjectName(u"comboBoxLineStileLine")
-        self.comboBoxLineStileLine.setFont(font)
-
-        self.horizontalLayout_13.addWidget(self.comboBoxLineStileLine)
-
-        self.comboBoxLineStile = QComboBox(self.groupBox_2)
-        self.comboBoxLineStile.setObjectName(u"comboBoxLineStile")
-        self.comboBoxLineStile.setFont(font)
-
-        self.horizontalLayout_13.addWidget(self.comboBoxLineStile)
-
-
-        self.verticalLayout.addLayout(self.horizontalLayout_13)
-
-
-        self.verticalLayout_8.addWidget(self.groupBox_2)
-
-        self.groupBox_4 = QGroupBox(self.tabPlot)
-        self.groupBox_4.setObjectName(u"groupBox_4")
-        self.groupBox_4.setFont(font)
-        self.verticalLayout_10 = QVBoxLayout(self.groupBox_4)
-        self.verticalLayout_10.setObjectName(u"verticalLayout_10")
-        self.horizontalLayout_15 = QHBoxLayout()
-        self.horizontalLayout_15.setObjectName(u"horizontalLayout_15")
-        self.label_11 = QLabel(self.groupBox_4)
-        self.label_11.setObjectName(u"label_11")
-        sizePolicy.setHeightForWidth(self.label_11.sizePolicy().hasHeightForWidth())
-        self.label_11.setSizePolicy(sizePolicy)
-        self.label_11.setMinimumSize(QSize(80, 0))
-        self.label_11.setFont(font)
-
-        self.horizontalLayout_15.addWidget(self.label_11)
-
-        self.sliderLegendFontSize = QSlider(self.groupBox_4)
-        self.sliderLegendFontSize.setObjectName(u"sliderLegendFontSize")
-        self.sliderLegendFontSize.setFont(font)
-        self.sliderLegendFontSize.setOrientation(Qt.Horizontal)
-
-        self.horizontalLayout_15.addWidget(self.sliderLegendFontSize)
-
-        self.spinBoxLegendFontSize = QSpinBox(self.groupBox_4)
-        self.spinBoxLegendFontSize.setObjectName(u"spinBoxLegendFontSize")
-        self.spinBoxLegendFontSize.setFont(font)
-
-        self.horizontalLayout_15.addWidget(self.spinBoxLegendFontSize)
-
-
-        self.verticalLayout_10.addLayout(self.horizontalLayout_15)
-
-        self.horizontalLayout_16 = QHBoxLayout()
-        self.horizontalLayout_16.setObjectName(u"horizontalLayout_16")
-        self.label_12 = QLabel(self.groupBox_4)
-        self.label_12.setObjectName(u"label_12")
-        sizePolicy.setHeightForWidth(self.label_12.sizePolicy().hasHeightForWidth())
-        self.label_12.setSizePolicy(sizePolicy)
-        self.label_12.setMinimumSize(QSize(80, 0))
-        self.label_12.setFont(font)
-
-        self.horizontalLayout_16.addWidget(self.label_12)
-
-        self.sliderLegendXPosition = QSlider(self.groupBox_4)
-        self.sliderLegendXPosition.setObjectName(u"sliderLegendXPosition")
-        self.sliderLegendXPosition.setFont(font)
-        self.sliderLegendXPosition.setOrientation(Qt.Horizontal)
-
-        self.horizontalLayout_16.addWidget(self.sliderLegendXPosition)
-
-        self.BoxLegendXPosition = QSpinBox(self.groupBox_4)
-        self.BoxLegendXPosition.setObjectName(u"BoxLegendXPosition")
-        self.BoxLegendXPosition.setFont(font)
-
-        self.horizontalLayout_16.addWidget(self.BoxLegendXPosition)
-
-
-        self.verticalLayout_10.addLayout(self.horizontalLayout_16)
-
-        self.horizontalLayout_17 = QHBoxLayout()
-        self.horizontalLayout_17.setObjectName(u"horizontalLayout_17")
-        self.label_13 = QLabel(self.groupBox_4)
-        self.label_13.setObjectName(u"label_13")
-        sizePolicy.setHeightForWidth(self.label_13.sizePolicy().hasHeightForWidth())
-        self.label_13.setSizePolicy(sizePolicy)
-        self.label_13.setMinimumSize(QSize(80, 0))
-        self.label_13.setFont(font)
-
-        self.horizontalLayout_17.addWidget(self.label_13)
-
-        self.sliderLegendYPosition = QSlider(self.groupBox_4)
-        self.sliderLegendYPosition.setObjectName(u"sliderLegendYPosition")
-        self.sliderLegendYPosition.setFont(font)
-        self.sliderLegendYPosition.setOrientation(Qt.Horizontal)
-
-        self.horizontalLayout_17.addWidget(self.sliderLegendYPosition)
-
-        self.spinBoxLegendYPosition = QSpinBox(self.groupBox_4)
-        self.spinBoxLegendYPosition.setObjectName(u"spinBoxLegendYPosition")
-        self.spinBoxLegendYPosition.setFont(font)
-
-        self.horizontalLayout_17.addWidget(self.spinBoxLegendYPosition)
-
-
-        self.verticalLayout_10.addLayout(self.horizontalLayout_17)
-
-
-        self.verticalLayout_8.addWidget(self.groupBox_4)
-
-        self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
-
-        self.verticalLayout_8.addItem(self.verticalSpacer)
-
-        self.tabWidget.addTab(self.tabPlot, "")
-
-        self.verticalLayout_2.addWidget(self.tabWidget)
-
-
-        self.horizontalLayout.addLayout(self.verticalLayout_2)
-
-        self.groupBox_5 = QGroupBox(self.centralwidget)
-        self.groupBox_5.setObjectName(u"groupBox_5")
-        self.groupBox_5.setFont(font)
-        self.verticalLayout_11 = QVBoxLayout(self.groupBox_5)
-        self.verticalLayout_11.setObjectName(u"verticalLayout_11")
-
-        # plotter
+        # plot preview begin ----------------------------------------------
+        # setting
+        self.groupBoxPreview.setObjectName(u"GroupBoxPreview")
+        self.groupBoxPreview.setTitle(QCoreApplication.translate("GraphMaker", u"Preview", None))
+        self.groupBoxPreview.setFont(font)
+        self.verticalLayoutPreview = QVBoxLayout(self.groupBoxPreview)
+        self.verticalLayoutPreview.setObjectName(u"VerticalLayoutPreview")
+        # objects
         self.plotter_ = GraphPlotter()
         self.figureCanvasPlotPreview = FigureCanvas(self.plotter_.getFigure())
-        self.figureCanvasPlotPreview.setObjectName(u"figureCanvasPlotPreview")
+        self.horizontalLayoutPreviewButton = QHBoxLayout()
+        # layout
+        self.verticalLayoutPreview.addWidget(self.figureCanvasPlotPreview)
+        self.verticalLayoutPreview.addLayout(self.horizontalLayoutPreviewButton)
+
+        # plotter begin --------------------------------------------------
+        # setting
+        self.figureCanvasPlotPreview.setObjectName(u"FigureCanvasPlotPreview")
         self.figureCanvasPlotPreview.setFont(font)
-        self.verticalLayout_11.addWidget(self.figureCanvasPlotPreview)
+        # objects
+        # layout
+        # plotter end ----------------------------------------------------
 
-        self.horizontalLayout_10 = QHBoxLayout()
-        self.horizontalLayout_10.setObjectName(u"horizontalLayout_10")
-        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        # preview buttons begin -------------------------------------------
+        # setting
+        self.horizontalLayoutPreviewButton.setObjectName(u"HorizontalLayoutPreviewButton")
 
-        self.horizontalLayout_10.addItem(self.horizontalSpacer)
-
-        self.pushButtonPlotPreview = QPushButton(self.groupBox_5)
-        self.pushButtonPlotPreview.setObjectName(u"pushButtonPlotPreview")
+        # objects
+        self.horizontalSpacerPreviewButton = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        # preview button
+        self.pushButtonPlotPreview = QPushButton(self.groupBoxPreview)
+        self.pushButtonPlotPreview.setObjectName(u"PushButtonPlotPreview")
+        self.pushButtonPlotPreview.setText(QCoreApplication.translate("GraphMaker", u"Preview", None))
         self.pushButtonPlotPreview.setFont(font)
-
-        self.horizontalLayout_10.addWidget(self.pushButtonPlotPreview)
-
-        self.pushButtonPlotExport = QPushButton(self.groupBox_5)
-        self.pushButtonPlotExport.setObjectName(u"pushButton")
+        self.pushButtonPlotPreview.clicked.connect(self.clickedPushButtonPlotPreview)
+        # export button
+        self.pushButtonPlotExport = QPushButton(self.groupBoxPreview)
+        self.pushButtonPlotExport.setObjectName(u"PushButtonPlotExport")
+        self.pushButtonPlotExport.setText(QCoreApplication.translate("GraphMaker", u"Export", None))
         self.pushButtonPlotExport.setFont(font)
+        self.pushButtonPlotExport.clicked.connect(self.clickedPushButtonPlotExport)
 
-        self.horizontalLayout_10.addWidget(self.pushButtonPlotExport)
+        # layout
+        self.horizontalLayoutPreviewButton.addItem(self.horizontalSpacerPreviewButton)
+        self.horizontalLayoutPreviewButton.addWidget(self.pushButtonPlotPreview)
+        self.horizontalLayoutPreviewButton.addWidget(self.pushButtonPlotExport)
+        # preview buttons end ----------------------------------------------
+        # plot preview end -----------------------------------------------
+        # layout settings  end ---------------------------------------------
 
-
-        self.verticalLayout_11.addLayout(self.horizontalLayout_10)
-
-
-        self.horizontalLayout.addWidget(self.groupBox_5)
-
-        GraphMaker.setCentralWidget(self.centralwidget)
+        # menu bar begin ----------------------------------------------------
+        GraphMaker.setCentralWidget(self.centralWidget)
         self.menubar = QMenuBar(GraphMaker)
-        self.menubar.setObjectName(u"menubar")
+        self.menubar.setObjectName(u"Menubar")
         self.menubar.setGeometry(QRect(0, 0, 800, 20))
         self.menuFile = QMenu(self.menubar)
-        self.menuFile.setObjectName(u"menuFile")
+        self.menuFile.setObjectName(u"MenuFile")
+        self.menuFile.setTitle(QCoreApplication.translate("GraphMaker", u"File(F)", None))
         self.menuEdit = QMenu(self.menubar)
-        self.menuEdit.setObjectName(u"menuEdit")
+        self.menuEdit.setObjectName(u"MenuEdit")
+        self.menuEdit.setTitle(QCoreApplication.translate("GraphMaker", u"Edit(E)", None))
         self.menuHelp = QMenu(self.menubar)
-        self.menuHelp.setObjectName(u"menuHelp")
+        self.menuHelp.setObjectName(u"MenuHelp")
+        self.menuHelp.setTitle(QCoreApplication.translate("GraphMaker", u"Help(H)", None))
         GraphMaker.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(GraphMaker)
         self.statusbar.setObjectName(u"statusbar")
         GraphMaker.setStatusBar(self.statusbar)
 
+        # actions begin -----------------------------------------------------
+        self.actionLoadTable = QAction(GraphMaker)
+        self.actionLoadTable.setObjectName(u"ActionLoadTable") 
+        self.actionLoadTable.setText(QCoreApplication.translate("GraphMaker", u"Load table", None))
+        self.actionClearTable = QAction(GraphMaker)
+        self.actionClearTable.setObjectName(u"ActionClearTable")
+        self.actionClearTable.setText(QCoreApplication.translate("GraphMaker", u"Clear table", None))
+        self.actionLoadSetting = QAction(GraphMaker)
+        self.actionLoadSetting.setObjectName(u"ActionLoadSetting")
+        self.actionLoadSetting.setText(QCoreApplication.translate("GraphMaker", u"Load setting", None))
+        self.actionSaveSetting = QAction(GraphMaker)
+        self.actionSaveSetting.setObjectName(u"ActionSaveSetting")
+        self.actionSaveSetting.setText(QCoreApplication.translate("GraphMaker", u"Save setting", None))
+        self.actionUserManual = QAction(GraphMaker)
+        self.actionUserManual.setObjectName(u"ActionUserManual")
+        self.actionUserManual.setText(QCoreApplication.translate("GraphMaker", u"User manual", None))
+        # callback
+        self.actionLoadTable.triggered.connect(self.clickedActionLoadTable) 
+        self.actionClearTable.triggered.connect(self.clickedActionClearTable)
+        self.actionLoadSetting.triggered.connect(self.clickedActionLoadSetting)
+        self.actionSaveSetting.triggered.connect(self.clickedActionSaveSetting)
+        self.actionUserManual.triggered.connect(self.clickedActionUserManual)
+        # actions end ------------------------------------------------------
+        # add actions to menu
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuEdit.menuAction())
         self.menubar.addAction(self.menuHelp.menuAction())
@@ -597,97 +502,12 @@ class Ui_GraphMaker(object):
         self.menuFile.addAction(self.actionLoadSetting)
         self.menuFile.addAction(self.actionSaveSetting)
         self.menuHelp.addAction(self.actionUserManual)
-
-        self.retranslateUi(GraphMaker)
-
-        self.tabWidget.setCurrentIndex(0)
-
-        # callbacks
-        self.actionLoadTable.triggered.connect(self.clickedActionLoadTable) 
-        self.actionClearTable.triggered.connect(self.clickedActionClearTable)
-        self.actionLoadSetting.triggered.connect(self.clickedActionLoadSetting)
-        self.actionSaveSetting.triggered.connect(self.clickedActionSaveSetting)
-        self.actionUserManual.triggered.connect(self.clickedActionUserManual)
-        self.buttonAddXAxis.clicked.connect(self.clickedButtonAddXAxis)
-        self.buttonAddYAxis.clicked.connect(self.clickedButtonAddYAxis)
-        self.buttonRemoveYAxis.clicked.connect(self.clickedButtonRemoveYAxis)
-        self.listDataList.doubleClicked.connect(self.doubleClickedListDataList)
-        self.listXAxisData.doubleClicked.connect(self.doubleClickedListXAxisData)
-        self.listYAxisData.doubleClicked.connect(self.doubleClickedListYAxisData)
-        self.pushButtonPlotPreview.clicked.connect(self.clickedPushButtonPlotPreview)
-        self.pushButtonPlotExport.clicked.connect(self.clickedPushButtonPlotExport)
-        self.lineEditXAxisText.textChanged.connect(self.changedLineEditXAxisText)
-        self.lineEditYAxisText.textChanged.connect(self.changedLineEditYAxisText)
-        self.sliderXAxisFontSize.valueChanged.connect(self.changedSliderXAxisFontSize)
-        self.spinBoxXAxisFontSize.valueChanged.connect(self.changedSpinBoxXAxisFontSize)
-        self.sliderYAxisFontSize.valueChanged.connect(self.changedSliderYAxisFontSize)
-        self.spinBoxYAxisFontSize.valueChanged.connect(self.changedSpinBoxYAxisFontSize)
-        self.checkBoxXAxisMinLimit.stateChanged.connect(self.changedCheckBoxXAxisLimit)
-        self.sliderXAxisMinLimit.valueChanged.connect(self.changedSliderXAxisMinLimit)
-        self.spinBoxXAxisMinLimit.valueChanged.connect(self.changedSpinBoxXAxisMinLimit)
-        self.checkBoxXAxisMaxLimit.stateChanged.connect(self.changedCheckBoxXAxisLimit)
-        self.sliderXAxisMaxLimit.valueChanged.connect(self.changedSliderXAxiMaxLimit)
-        self.SpinBoxXAxisMaxLimit.valueChanged.connect(self.changedSpinBoxXAxisMaxLimit)
-        self.checkBoxYAxisMinLimit.stateChanged.connect(self.changedCheckBoxYAxisLimit)
-        self.sliderYAxisMinLimit.valueChanged.connect(self.changedSliderYAxisMinLimit)
-        self.spinBoxYAxisMinLimit.valueChanged.connect(self.changedSpinBoxYAxisMinLimit)
-        self.checkBoxYAxisMaxLimit.stateChanged.connect(self.changedCheckBoxYAxisLimit)
-        self.sliderYAxisMaxLimit.valueChanged.connect(self.changedSliderYAxisMaxLimit)
-        self.spinBoxYAxisMaxLimit.valueChanged.connect(self.changedSpinBoxYAxisMaxLimit)
+        # menu bar end ------------------------------------------------------
 
         self.dataList_ = {}
 
-
         QMetaObject.connectSlotsByName(GraphMaker)
     # setupUi
-
-    def retranslateUi(self, GraphMaker):
-        GraphMaker.setWindowTitle(QCoreApplication.translate("GraphMaker", u"GraphMaker", None))
-        self.actionLoadTable.setText(QCoreApplication.translate("GraphMaker", u"Load table", None))
-        self.actionClearTable.setText(QCoreApplication.translate("GraphMaker", u"Clear table", None))
-        self.actionLoadSetting.setText(QCoreApplication.translate("GraphMaker", u"Load setting", None))
-        self.actionSaveSetting.setText(QCoreApplication.translate("GraphMaker", u"Save setting", None))
-        self.actionUserManual.setText(QCoreApplication.translate("GraphMaker", u"User manual", None))
-
-        __sortingEnabled = self.listDataList.isSortingEnabled()
-        self.listDataList.setSortingEnabled(False)
-        ___qlistwidgetitem = self.listDataList.item(0)
-        ___qlistwidgetitem.setText(QCoreApplication.translate("GraphMaker", u"No data", None));
-        self.listDataList.setSortingEnabled(__sortingEnabled)
-
-        self.buttonAddXAxis.setText(QCoreApplication.translate("GraphMaker", u"\u2192", None))
-        self.buttonAddYAxis.setText(QCoreApplication.translate("GraphMaker", u"\u2192", None))
-        self.buttonRemoveYAxis.setText(QCoreApplication.translate("GraphMaker", u"\u2190", None))
-        self.label_10.setText(QCoreApplication.translate("GraphMaker", u"X axis", None))
-        self.label_9.setText(QCoreApplication.translate("GraphMaker", u"Y axis", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabDataSelector), QCoreApplication.translate("GraphMaker", u"Data Selector", None))
-        self.groupBox.setTitle(QCoreApplication.translate("GraphMaker", u"X axis", None))
-        self.label.setText(QCoreApplication.translate("GraphMaker", u"Text:", None))
-        self.label_2.setText(QCoreApplication.translate("GraphMaker", u"Font size:", None))
-        self.checkBoxXAxisMinLimit.setText(QCoreApplication.translate("GraphMaker", u"Min limit:", None))
-        self.checkBoxXAxisMaxLimit.setText(QCoreApplication.translate("GraphMaker", u"Max limit:", None))
-        self.groupBox_3.setTitle(QCoreApplication.translate("GraphMaker", u"Y axis", None))
-        self.label_4.setText(QCoreApplication.translate("GraphMaker", u"Text:", None))
-        self.label_5.setText(QCoreApplication.translate("GraphMaker", u"Font size:", None))
-        self.checkBoxYAxisMinLimit.setText(QCoreApplication.translate("GraphMaker", u"Min limit:", None))
-        self.checkBoxYAxisMaxLimit.setText(QCoreApplication.translate("GraphMaker", u"Max limit:", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabAxis), QCoreApplication.translate("GraphMaker", u"Axis", None))
-        self.groupBox_2.setTitle(QCoreApplication.translate("GraphMaker", u"Line", None))
-        self.label_6.setText(QCoreApplication.translate("GraphMaker", u"Width:", None))
-        self.label_7.setText(QCoreApplication.translate("GraphMaker", u"Color:", None))
-        self.label_8.setText(QCoreApplication.translate("GraphMaker", u"Stile:", None))
-        self.groupBox_4.setTitle(QCoreApplication.translate("GraphMaker", u"Legend", None))
-        self.label_11.setText(QCoreApplication.translate("GraphMaker", u"Font size:", None))
-        self.label_12.setText(QCoreApplication.translate("GraphMaker", u"X position:", None))
-        self.label_13.setText(QCoreApplication.translate("GraphMaker", u"Y position:", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabPlot), QCoreApplication.translate("GraphMaker", u"Plot", None))
-        self.groupBox_5.setTitle(QCoreApplication.translate("GraphMaker", u"Preview", None))
-        self.pushButtonPlotPreview.setText(QCoreApplication.translate("GraphMaker", u"Preview", None))
-        self.pushButtonPlotExport.setText(QCoreApplication.translate("GraphMaker", u"Export", None))
-        self.menuFile.setTitle(QCoreApplication.translate("GraphMaker", u"File(F)", None))
-        self.menuEdit.setTitle(QCoreApplication.translate("GraphMaker", u"Edit(E)", None))
-        self.menuHelp.setTitle(QCoreApplication.translate("GraphMaker", u"Help(H)", None))
-    # retranslateUi
 
     def clickedActionLoadTable(self):
         file_dialog = QFileDialog()
@@ -819,40 +639,20 @@ class Ui_GraphMaker(object):
         self.exportGraph()
     # clickedPushButtonPlotExport
 
-    def changedLineEditXAxisText(self):
-        self.plotter_.setXAxisLabel(self.lineEditXAxisText.text())
+    def changedLineEditXAxisLabel(self, text: str):
+        self.plotter_.setXAxisLabel(text)
         self.plotGraph()
     # changedLineEditXAxisText
 
-    def changedLineEditYAxisText(self):
-        self.plotter_.setYAxisLabel(self.lineEditYAxisText.text())
+    def changedLineEditYAxisLabel(self, text: str):
+        self.plotter_.setYAxisLabel(text)
         self.plotGraph()
     # changedLineEditYAxisText
-
-    def changedSliderXAxisFontSize(self, value):
-        self.spinBoxXAxisFontSize.setValue(value)
-        self.setXAxisFontSize(value)
-    # changedSliderXAxisFontSize
-
-    def changedSpinBoxXAxisFontSize(self, value):
-        self.sliderXAxisFontSize.setValue(value)
-        self.setXAxisFontSize(value)
-    # changedSpinBoxXAxisFontSize
 
     def setXAxisFontSize(self, value):
         self.plotter_.setXAxisFontSize(value)
         self.plotGraph()
     # setXAxisFontSize
-
-    def changedSliderYAxisFontSize(self, value):
-        self.spinBoxYAxisFontSize.setValue(value)
-        self.setYAxisFontSize(value)
-    # changedSliderYAxisFontSize
-
-    def changedSpinBoxYAxisFontSize(self, value):
-        self.sliderYAxisFontSize.setValue(value)
-        self.setYAxisFontSize(value)
-    # changedSpinBoxYAxisFontSize
 
     def setYAxisFontSize(self, value):
         self.plotter_.setYAxisFontSize(value)
@@ -880,111 +680,55 @@ class Ui_GraphMaker(object):
 
         # スライダとスピンボックスに反映
         # X軸 min
-        self.sliderXAxisMinLimit.setMinimum(xMin * self.SLIDER_DOUBLE_RATIO)
-        self.sliderXAxisMinLimit.setMaximum(xMax * self.SLIDER_DOUBLE_RATIO)
-        self.sliderXAxisMinLimit.setSingleStep((xMax - xMin) / 100 * self.SLIDER_DOUBLE_RATIO)
-        self.spinBoxXAxisMinLimit.setMinimum(xMin)
-        self.spinBoxXAxisMinLimit.setMaximum(xMax)
+        self.sliderXAxisMinLimit.setRange(xMin, xMax)
         # X軸 max
-        self.sliderXAxisMaxLimit.setMinimum(xMin * self.SLIDER_DOUBLE_RATIO)
-        self.sliderXAxisMaxLimit.setMaximum(xMax * self.SLIDER_DOUBLE_RATIO)
-        self.sliderXAxisMaxLimit.setSingleStep((xMax - xMin) / 100 * self.SLIDER_DOUBLE_RATIO)
-        self.SpinBoxXAxisMaxLimit.setMinimum(xMin)
-        self.SpinBoxXAxisMaxLimit.setMaximum(xMax)
+        self.sliderXAxisMaxLimit.setRange(xMin, xMax)
         # Y軸 min
-        self.sliderYAxisMinLimit.setMinimum(yMin * self.SLIDER_DOUBLE_RATIO)
-        self.sliderYAxisMinLimit.setMaximum(yMax * self.SLIDER_DOUBLE_RATIO)
-        self.sliderYAxisMinLimit.setSingleStep((yMax - yMin) / 100 * self.SLIDER_DOUBLE_RATIO)
-        self.spinBoxYAxisMinLimit.setMinimum(yMin)
-        self.spinBoxYAxisMinLimit.setMaximum(yMax)
+        self.sliderYAxisMinLimit.setRange(yMin, yMax)
         # Y軸 max
-        self.sliderYAxisMaxLimit.setMinimum(yMin * self.SLIDER_DOUBLE_RATIO)
-        self.sliderYAxisMaxLimit.setMaximum(yMax * self.SLIDER_DOUBLE_RATIO)
-        self.sliderYAxisMaxLimit.setSingleStep((yMax - yMin) / 100 * self.SLIDER_DOUBLE_RATIO)
-        self.spinBoxYAxisMaxLimit.setMinimum(yMin)
-        self.spinBoxYAxisMaxLimit.setMaximum(yMax)
+        self.sliderYAxisMaxLimit.setRange(yMin, yMax)
     # updatePlotDataRange
 
     def changedCheckBoxXAxisLimit(self, state):
-        minEnabled = self.checkBoxXAxisMinLimit.isChecked()
-        maxEnabled = self.checkBoxXAxisMaxLimit.isChecked()
+        minEnabled = self.sliderXAxisMinLimit.isChecked()
+        maxEnabled = self.sliderXAxisMaxLimit.isChecked()
         self.plotter_.setXAxisLimitEnabled(minEnabled, maxEnabled)
 
-        self.plotGraph()
+        self.updateXAxisLimitValue(minEnabled and maxEnabled)
     # changedCheckBoxXAxisMinLimit
 
+    def changedSliderXAxisLimit(self, value):
+        self.updateXAxisLimitValue(True)
+    # changedSliderXAxisLimit
+
     def updateXAxisLimitValue(self, plotEnabled=True):
-        minValue = self.spinBoxXAxisMinLimit.value()
-        maxValue = self.SpinBoxXAxisMaxLimit.value()
+        minValue = self.sliderXAxisMinLimit.getValue()
+        maxValue = self.sliderXAxisMaxLimit.getValue()
         self.plotter_.setXAxisLimitValue(minValue, maxValue)
         if plotEnabled:
             self.plotGraph()
     # updateXAxisLimitValue
 
-    def changedSliderXAxisMinLimit(self, value):
-        rescaledValue = value / self.SLIDER_DOUBLE_RATIO
-        self.spinBoxXAxisMinLimit.setValue(rescaledValue)
-        self.updateXAxisLimitValue(self.checkBoxXAxisMinLimit.isChecked())
-    # changedSliderXAxisMinLimit
-
-    def changedSpinBoxXAxisMinLimit(self, value):
-        rescaledValue = value * self.SLIDER_DOUBLE_RATIO
-        self.sliderXAxisMinLimit.setValue(rescaledValue)
-        self.updateXAxisLimitValue(self.checkBoxXAxisMinLimit.isChecked())
-    # changedSpinBoxXAxisMinLimit
-
-    def changedSliderXAxiMaxLimit(self, value):
-        rescaledValue = value / self.SLIDER_DOUBLE_RATIO
-        self.SpinBoxXAxisMaxLimit.setValue(rescaledValue)
-        self.updateXAxisLimitValue(self.checkBoxXAxisMaxLimit.isChecked())
-    # changedSliderXAxiMaxLimit
-
-    def changedSpinBoxXAxisMaxLimit(self, value):
-        rescaledValue = value * self.SLIDER_DOUBLE_RATIO
-        self.sliderXAxisMaxLimit.setValue(rescaledValue)
-        self.updateXAxisLimitValue(self.checkBoxXAxisMaxLimit.isChecked())
-    # changedSpinBoxXAxisMaxLimit
-
     def changedCheckBoxYAxisLimit(self, state):
-        minEnabled = self.checkBoxYAxisMinLimit.isChecked()
-        maxEnabled = self.checkBoxYAxisMaxLimit.isChecked()
+        minEnabled = self.sliderYAxisMinLimit.isChecked()
+        maxEnabled = self.sliderYAxisMaxLimit.isChecked()
         self.plotter_.setYAxisLimitEnabled(minEnabled, maxEnabled)
 
-        self.plotGraph()
+        self.updateYAxisLimitValue(minEnabled and maxEnabled)
     # changedCheckBoxYAxisLimit
 
+    def changedSliderYAxisLimit(self, value):
+        self.updateYAxisLimitValue(True)
+    # changedSliderXAxisLimit
+
     def updateYAxisLimitValue(self, plotEnabled=True):
-        minValue = self.spinBoxYAxisMinLimit.value()
-        maxValue = self.spinBoxYAxisMaxLimit.value()
+        minValue = self.sliderYAxisMinLimit.getValue()
+        maxValue = self.sliderYAxisMaxLimit.getValue()
         self.plotter_.setYAxisLimitValue(minValue, maxValue)
 
         if plotEnabled:
             self.plotGraph()
     # updateYAxisLimitValue
-
-    def changedSliderYAxisMinLimit(self, value):
-        rescaledValue = value / self.SLIDER_DOUBLE_RATIO
-        self.spinBoxYAxisMinLimit.setValue(rescaledValue)
-        self.updateYAxisLimitValue(self.checkBoxYAxisMinLimit.isChecked())
-    # changedSliderYAxisMinLimit
-
-    def changedSpinBoxYAxisMinLimit(self, value):
-        rescaledValue = value * self.SLIDER_DOUBLE_RATIO
-        self.sliderYAxisMinLimit.setValue(rescaledValue)
-        self.updateYAxisLimitValue(self.checkBoxYAxisMinLimit.isChecked())
-    # changedSpinBoxYAxisMinLimit
-
-    def changedSliderYAxisMaxLimit(self, value):
-        rescaledValue = value / self.SLIDER_DOUBLE_RATIO
-        self.spinBoxYAxisMaxLimit.setValue(rescaledValue)
-        self.updateYAxisLimitValue(self.checkBoxYAxisMaxLimit.isChecked())
-    # changedSliderYAxisMaxLimit
-
-    def changedSpinBoxYAxisMaxLimit(self, value):
-        rescaledValue = value * self.SLIDER_DOUBLE_RATIO
-        self.sliderYAxisMaxLimit.setValue(rescaledValue)
-        self.updateYAxisLimitValue(self.checkBoxYAxisMaxLimit.isChecked())
-    # changedSpinBoxYAxisMaxLimit
 
     def exportGraph(self):
         file_dialog = QFileDialog()
