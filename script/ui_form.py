@@ -336,7 +336,10 @@ class Ui_GraphMaker(object):
         self.sliderLineWidth.setValueChangeCallback(self.changedSliderLineWidth)
         self.sliderLineWidth.setValue(GraphPlotter.DEFAULT_LINE_WIDTH)
         # line color
-        self.horizontalLayoutLineColor = QHBoxLayout()
+        self.colorSelectorLineColor = my_widget.LabeledColorSelector(self.groupBoxLine, False, True)
+        self.colorSelectorLineColor.setObjectName(u"ColorSelectorLineColor")
+        self.colorSelectorLineColor.setLabelText(QCoreApplication.translate("GraphMaker", u"Color:", None))
+        self.colorSelectorLineColor.setColorChangedCallback(self.changedComboBoxLineColor)
         # line stile
         self.comboBoxLineStile = my_widget.LabeledComboBox(self.groupBoxLine, False, True)
         self.comboBoxLineStile.setObjectName(u"ComboBoxLineStile")
@@ -348,31 +351,8 @@ class Ui_GraphMaker(object):
         
         # layout
         self.verticalLayoutLine.addLayout(self.sliderLineWidth.getLayout())
-        self.verticalLayoutLine.addLayout(self.horizontalLayoutLineColor)
+        self.verticalLayoutLine.addLayout(self.colorSelectorLineColor.getLayout())
         self.verticalLayoutLine.addLayout(self.comboBoxLineStile.getLayout())
-
-        # line color begin -----------------------------------------------
-        # TODO: Line Colorに適切なwidgetを考える
-        self.horizontalLayoutLineColor.setObjectName(u"HorizontalLayoutLineColor")
-        self.labelLineColor = QLabel(self.groupBoxLine)
-        self.labelLineColor.setObjectName(u"LabelLineColor")
-        self.labelLineColor.setText(QCoreApplication.translate("GraphMaker", u"Color:", None))
-        sizePolicy.setHeightForWidth(self.labelLineColor.sizePolicy().hasHeightForWidth())
-        self.labelLineColor.setSizePolicy(sizePolicy)
-        self.labelLineColor.setMinimumSize(QSize(80, 0))
-        self.labelLineColor.setFont(font)
-        self.horizontalLayoutLineColor.addWidget(self.labelLineColor)
-        self.comboBoxLineColorLine = QComboBox(self.groupBoxLine)
-        self.comboBoxLineColorLine.setObjectName(u"ComboBoxLineColorLine")
-        self.comboBoxLineColorLine.setFont(font)
-        self.horizontalLayoutLineColor.addWidget(self.comboBoxLineColorLine)
-        self.paletteLineColor = QWidget(self.groupBoxLine)
-        self.paletteLineColor.setObjectName(u"PaletteLineColor")
-        sizePolicy.setHeightForWidth(self.paletteLineColor.sizePolicy().hasHeightForWidth())
-        self.paletteLineColor.setSizePolicy(sizePolicy)
-        self.paletteLineColor.setMinimumSize(QSize(20, 0))
-        self.horizontalLayoutLineColor.addWidget(self.paletteLineColor)
-        # line color end ------------------------------------------------
         # line end -------------------------------------------------------
 
         # legend begin ----------------------------------------------------
@@ -559,6 +539,7 @@ class Ui_GraphMaker(object):
         self.listDataList.addItem("No data")
         self.lineEditLegendText.clearSelectBox()
         self.sliderLineWidth.clearSelectBox()
+        self.colorSelectorLineColor.clearSelectBox()
         self.comboBoxLineStile.clearSelectBox()
         self.dataList_ = {}
         
@@ -608,14 +589,17 @@ class Ui_GraphMaker(object):
         # レジェンド、ライン幅、ラインスタイルの初期設定
         self.lineEditLegendText.addSelectBoxItem(text)
         self.sliderLineWidth.addSelectBoxItem(text)
+        self.colorSelectorLineColor.addSelectBoxItem(text)
         self.comboBoxLineStile.addSelectBoxItem(text)
 
         # デフォルト値を設定
         self.sliderLineWidth.setData(text, GraphPlotter.DEFAULT_LINE_WIDTH)
+        self.colorSelectorLineColor.setData(text, GraphPlotter.DEFAULT_LINE_COLOR)
         self.comboBoxLineStile.setData(text, 0)
 
         # プロットへの反映
         self.changedSliderLineWidth(GraphPlotter.DEFAULT_LINE_WIDTH)
+        self.changedComboBoxLineColor(GraphPlotter.DEFAULT_LINE_COLOR)
         self.changedComboBoxLineStile(0)
         self.addTextToList(self.listYAxisData, text)
     # clickedButtonAddYAxis
@@ -633,6 +617,7 @@ class Ui_GraphMaker(object):
         self.plotter_.removeYDataIndex(index)
         self.lineEditLegendText.removeSelectBoxItem(text)
         self.sliderLineWidth.removeSelectBoxItem(text)
+        self.colorSelectorLineColor.removeSelectBoxItem(text)
         self.comboBoxLineStile.removeSelectBoxItem(text)
         self.removeTextFromList(self.listYAxisData, text)
     # clickedButtonRemoveYAxis
@@ -782,6 +767,11 @@ class Ui_GraphMaker(object):
         self.plotter_.setLineWidth(self.sliderLineWidth.getDataList())
         self.plotGraph()
     # changedSliderLineWidth
+
+    def changedComboBoxLineColor(self, color):
+        self.plotter_.setLineColors(self.colorSelectorLineColor.getDataList())
+        self.plotGraph()
+    # changedComboBoxLineColor
 
     def changedComboBoxLineStile(self, index):
         lineStileSymbol = []

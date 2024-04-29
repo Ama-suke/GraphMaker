@@ -295,3 +295,70 @@ class my_widget:
 
             if self.fComboBoxCallback_ is not None:
                 self.fComboBoxCallback_(index)
+
+    class LabeledColorSelector(LabeledWidget):
+        def __init__(self, parent=None, hasCheckBox=False, hasSelectBox=False):
+            self.layoutColorSelector_ = QHBoxLayout()
+            super().__init__(self.layoutColorSelector_, parent, hasCheckBox, hasSelectBox)
+
+            # objects
+            self.colorComboBox_ = QComboBox(parent)
+            self.colorViewer_ = QLabel(parent)
+            self.colorViewer_.setFixedSize(20, 20)
+
+            # layout
+            self.layoutColorSelector_.addWidget(self.colorComboBox_)
+            self.layoutColorSelector_.addWidget(self.colorViewer_)
+
+            # signal
+            self.colorComboBox_.currentIndexChanged.connect(self.colorChangedCallback_)
+
+            # callback
+            self.fColorChangedCallback_ = None
+
+            self.initializeColorList_()
+
+        def addSelectBoxItem(self, text: str):
+            super().addSelectBoxItem(text)
+            self.dataDict_[text] = "Black"
+
+        def setColor(self, color: str):
+            self.colorComboBox_.setCurrentIndex(self.colorComboBox_.findText(color))
+        
+        def getColor(self):
+            return self.colorComboBox_.currentText()
+
+        def setColorChangedCallback(self, fColorChangedCallback):
+            self.fColorChangedCallback_ = fColorChangedCallback
+
+        # private:
+        def initializeColorList_(self):
+            self.colorComboBox_.addItem("Black")
+            self.colorComboBox_.addItem("Red")
+            self.colorComboBox_.addItem("Green")
+            self.colorComboBox_.addItem("Blue")
+            self.colorComboBox_.addItem("Yellow")
+            self.colorComboBox_.addItem("Cyan")
+            self.colorComboBox_.addItem("Magenta")
+            self.colorComboBox_.addItem("White")
+
+            self.colorComboBox_.setCurrentIndex(0)
+
+        def selectBoxChangedCallback_(self, index):
+            if self.hasSelectBox_ and self.selectBox_.currentText() in self.dataDict_:
+                curData = self.dataDict_[self.selectBox_.currentText()]
+                self.setColor(curData)
+
+            super().selectBoxChangedCallback_(index)
+
+        def colorChangedCallback_(self, index):
+            self.colorViewer_.setStyleSheet("background-color: " + self.colorComboBox_.currentText())
+            if self.hasSelectBox_ and self.selectBox_.currentText() in self.dataDict_:
+                self.dataDict_[self.selectBox_.currentText()] = self.colorComboBox_.currentText()
+
+            if self.hasCheckBox_ and not self.label_.isChecked():
+                # チェックボックスがチェックされていないときはコールバックを呼ばない
+                return
+
+            if self.fColorChangedCallback_ is not None:
+                self.fColorChangedCallback_(self.colorComboBox_.currentText())

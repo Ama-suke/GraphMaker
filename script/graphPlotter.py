@@ -12,6 +12,8 @@ class GraphPlotter:
     BIG_VALUE_ = 1e+10
     DEFAULT_FONT_SIZE = 12
     DEFAULT_LINE_WIDTH = 1
+    DEFAULT_LINE_STILE = "-"
+    DEFAULT_LINE_COLOR = "Black"
 
     class Axis:
 
@@ -30,7 +32,7 @@ class GraphPlotter:
 
     class PlotParam:
         def __init__(self):
-            self.colors = []
+            self.lineColors = []
             self.lineStiles = []
             self.lineWidth = []
             self.legendEnabled = False
@@ -86,12 +88,14 @@ class GraphPlotter:
                     xData = self.dataList_[self.xDataIndexes_[0]]
                     self.ax_.plot(xData, yData,\
                                 lw=self.plotParam_.lineWidth[i],\
-                                linestyle=self.plotParam_.lineStiles[i])
+                                linestyle=self.plotParam_.lineStiles[i],\
+                                color=self.plotParam_.lineColors[i])
                 else:
                     xData = self.dataList_[self.xDataIndexes_[i]]
                     self.ax_.plot(xData, yData,\
                                 lw=self.plotParam_.lineWidth[i],\
-                                linestyle=self.plotParam_.lineStiles[i])
+                                linestyle=self.plotParam_.lineStiles[i],\
+                                color=self.plotParam_.lineColors[i])
                 self.updateRange_(self.xDataRange_, xData)
                 self.updateRange_(self.yDataRange_, yData)
 
@@ -176,6 +180,9 @@ class GraphPlotter:
 
     def setLineStiles(self, stiles: list):
         self.plotParam_.lineStiles = stiles
+
+    def setLineColors(self, colors: list):
+        self.plotParam_.lineColors = colors
 
     def getXDataRange(self):
         return self.xDataRange_
