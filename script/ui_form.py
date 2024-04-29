@@ -397,22 +397,10 @@ class Ui_GraphMaker(object):
         self.sliderLegendFontSize.setValue(GraphPlotter.DEFAULT_FONT_SIZE)
         self.sliderLegendFontSize.setRange(1, 100)
         self.sliderLegendFontSize.setValueChangeCallback(self.changedSliderLegendFontSize)
-        # x position
-        self.sliderLegendXPosition = my_widget.LabeledSlider(self.groupBoxLegend, False, False, False)
-        self.sliderLegendXPosition.setObjectName(u"SliderLegendXPosition")
-        self.sliderLegendXPosition.setLabelText(QCoreApplication.translate("GraphMaker", u"X position:", None))
-        self.sliderLegendXPosition.setRange(0, 100)
-        # y position
-        self.sliderLegendYPosition = my_widget.LabeledSlider(self.groupBoxLegend, False, False, False)
-        self.sliderLegendYPosition.setObjectName(u"SliderLegendYPosition")
-        self.sliderLegendYPosition.setLabelText(QCoreApplication.translate("GraphMaker", u"Y position:", None))
-        self.sliderLegendYPosition.setRange(0, 100)
         
         # layout
         self.verticalLayoutLegend.addLayout(self.lineEditLegendText.getLayout())
         self.verticalLayoutLegend.addLayout(self.sliderLegendFontSize.getLayout())
-        self.verticalLayoutLegend.addLayout(self.sliderLegendXPosition.getLayout())
-        self.verticalLayoutLegend.addLayout(self.sliderLegendYPosition.getLayout())
         # legend end ------------------------------------------------------
         # plot tab end ----------------------------------------------------
         # tab widget end --------------------------------------------------
