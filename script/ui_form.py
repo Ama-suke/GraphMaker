@@ -734,11 +734,14 @@ class Ui_GraphMaker(object):
         maxEnabled = self.sliderXAxisMaxLimit.isChecked()
         self.plotter_.setXAxisLimitEnabled(minEnabled, maxEnabled)
 
-        self.updateXAxisLimitValue(minEnabled and maxEnabled)
+        self.updateXAxisLimitValue(True)
     # changedCheckBoxXAxisMinLimit
 
     def changedSliderXAxisLimit(self, value):
-        self.updateXAxisLimitValue(True)
+        minEnabled = self.sliderXAxisMinLimit.isChecked()
+        maxEnabled = self.sliderXAxisMaxLimit.isChecked()
+
+        self.updateXAxisLimitValue(minEnabled or maxEnabled)
     # changedSliderXAxisLimit
 
     def updateXAxisLimitValue(self, plotEnabled=True):
@@ -754,11 +757,13 @@ class Ui_GraphMaker(object):
         maxEnabled = self.sliderYAxisMaxLimit.isChecked()
         self.plotter_.setYAxisLimitEnabled(minEnabled, maxEnabled)
 
-        self.updateYAxisLimitValue(minEnabled and maxEnabled)
+        self.updateYAxisLimitValue(True)
     # changedCheckBoxYAxisLimit
 
     def changedSliderYAxisLimit(self, value):
-        self.updateYAxisLimitValue(True)
+        minEnabled = self.sliderYAxisMinLimit.isChecked()
+        maxEnabled = self.sliderYAxisMaxLimit.isChecked()
+        self.updateYAxisLimitValue(minEnabled or maxEnabled)
     # changedSliderXAxisLimit
 
     def updateYAxisLimitValue(self, plotEnabled=True):
