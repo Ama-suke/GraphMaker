@@ -1,6 +1,9 @@
 {
     "files": [
-        "graphmaker.py",
-        "form.ui"
+        "script/graphmaker.py",
+        "ui/form.ui",
+        "script/ui_form.py",
+        "script/graphPlotter.py",
+        "script/switchedValue.py"
     ]
 }
