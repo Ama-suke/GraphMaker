@@ -33,6 +33,12 @@ class Ui_GraphMaker(object):
     SLIDER_DOUBLE_RATIO = 1e5  # sliderの値をdoubleに変換するための倍率
     SPINBOX_Decimals = 5  # spinboxの小数点以下の桁数
     LINE_STILE_MAP = {"Solid": "-", "Dashed": "--", "Dotted": ":", "DashDot": "-."}
+    PLOT_LEGEND_POSITION_LIST = ["best", "upper right", "upper left", "lower left", "lower right", "right", "center left", "center right", "lower center", "upper center", "center"]
+
+    PLOT_ASPECT_RATIO = 1.414   # plotのアスペクト比　白銀比
+    PLOT_AREA_HEIGHT = 300      # plotの高さ
+    TAB_WIDGET_WIDTH = 400      # tab widgetの幅
+    WINDOW_MARGIN = 200         # windowの余白
 
     def setupUi(self, GraphMaker):
         if not GraphMaker.objectName():
@@ -40,7 +46,8 @@ class Ui_GraphMaker(object):
 
         # settings
         GraphMaker.setWindowTitle(QCoreApplication.translate("GraphMaker", u"GraphMaker", None))
-        GraphMaker.resize(900, 550)
+        windowWidth = self.TAB_WIDGET_WIDTH + self.PLOT_AREA_HEIGHT * self.PLOT_ASPECT_RATIO + self.WINDOW_MARGIN
+        GraphMaker.setFixedSize(windowWidth, self.PLOT_AREA_HEIGHT + self.WINDOW_MARGIN)
         font = QFont()
         font.setPointSize(12)
         # 初期設定のために最初に生成する
@@ -70,7 +77,7 @@ class Ui_GraphMaker(object):
         # tab widget begin ------------------------------------------------
         # setting
         self.tabWidget.setObjectName(u"TabWidget")
-        self.tabWidget.setMaximumSize(QSize(400, 16777215))
+        self.tabWidget.setMaximumSize(QSize(self.TAB_WIDGET_WIDTH, 16777215))
         self.tabWidget.setFont(font)
         self.tabWidget.setCurrentIndex(0)
 
@@ -313,10 +320,12 @@ class Ui_GraphMaker(object):
         # objects
         self.groupBoxLine = QGroupBox(self.tabPlot)
         self.groupBoxLegend = QGroupBox(self.tabPlot)
+        self.groupBoxAxes = QGroupBox(self.tabPlot)
         self.verticalSpacerPlotTab = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding) 
         # layout
         self.verticalLayoutPlotTab.addWidget(self.groupBoxLine)
         self.verticalLayoutPlotTab.addWidget(self.groupBoxLegend)
+        self.verticalLayoutPlotTab.addWidget(self.groupBoxAxes)
         self.verticalLayoutPlotTab.addItem(self.verticalSpacerPlotTab)
 
         # line begin ------------------------------------------------------
@@ -377,11 +386,38 @@ class Ui_GraphMaker(object):
         self.sliderLegendFontSize.setValue(GraphPlotter.DEFAULT_FONT_SIZE)
         self.sliderLegendFontSize.setRange(1, 100)
         self.sliderLegendFontSize.setValueChangeCallback(self.changedSliderLegendFontSize)
+        # position
+        self.comboBoxLegendPosition = my_widget.LabeledComboBox(self.groupBoxLegend, False, False)
+        self.comboBoxLegendPosition.setObjectName(u"ComboBoxLegendPosition")
+        self.comboBoxLegendPosition.setLabelText(QCoreApplication.translate("GraphMaker", u"Position:", None))
+        self.comboBoxLegendPosition.setComboBoxCallback(self.changedComboBoxLegendPosition)
+        for position in self.PLOT_LEGEND_POSITION_LIST:
+            self.comboBoxLegendPosition.addComboBoxItem(QCoreApplication.translate("GraphMaker", position, None))
         
         # layout
         self.verticalLayoutLegend.addLayout(self.lineEditLegendText.getLayout())
         self.verticalLayoutLegend.addLayout(self.sliderLegendFontSize.getLayout())
+        self.verticalLayoutLegend.addLayout(self.comboBoxLegendPosition.getLayout())
         # legend end ------------------------------------------------------
+
+        # axes begin ------------------------------------------------------
+        # setting
+        self.groupBoxAxes.setObjectName(u"GroupBoxAxes")
+        self.groupBoxAxes.setTitle(QCoreApplication.translate("GraphMaker", u"Axes", None))
+        self.groupBoxAxes.setFont(font)
+        self.verticalLayoutAxes = QVBoxLayout(self.groupBoxAxes)
+        self.verticalLayoutAxes.setObjectName(u"VerticalLayoutAxes")
+        
+        # objects
+        # grid
+        self.checkBoxGrid = QCheckBox(self.groupBoxAxes)
+        self.checkBoxGrid.setObjectName(u"CheckBoxGrid")
+        self.checkBoxGrid.setText(QCoreApplication.translate("GraphMaker", u"Grid:", None))
+        self.checkBoxGrid.stateChanged.connect(self.changedCheckBoxGrid)
+
+        # layout
+        self.verticalLayoutAxes.addWidget(self.checkBoxGrid)
+        # axes end -------------------------------------------------------
         # plot tab end ----------------------------------------------------
         # tab widget end --------------------------------------------------
 
@@ -403,6 +439,7 @@ class Ui_GraphMaker(object):
         # setting
         self.figureCanvasPlotPreview.setObjectName(u"FigureCanvasPlotPreview")
         self.figureCanvasPlotPreview.setFont(font)
+        self.figureCanvasPlotPreview.setMinimumSize(QSize(self.PLOT_AREA_HEIGHT * self.PLOT_ASPECT_RATIO, self.PLOT_AREA_HEIGHT))
         # objects
         # layout
         # plotter end ----------------------------------------------------
@@ -442,9 +479,6 @@ class Ui_GraphMaker(object):
         self.menuFile = QMenu(self.menubar)
         self.menuFile.setObjectName(u"MenuFile")
         self.menuFile.setTitle(QCoreApplication.translate("GraphMaker", u"File(F)", None))
-        self.menuEdit = QMenu(self.menubar)
-        self.menuEdit.setObjectName(u"MenuEdit")
-        self.menuEdit.setTitle(QCoreApplication.translate("GraphMaker", u"Edit(E)", None))
         self.menuHelp = QMenu(self.menubar)
         self.menuHelp.setObjectName(u"MenuHelp")
         self.menuHelp.setTitle(QCoreApplication.translate("GraphMaker", u"Help(H)", None))
@@ -478,7 +512,6 @@ class Ui_GraphMaker(object):
         # actions end ------------------------------------------------------
         # add actions to menu
         self.menubar.addAction(self.menuFile.menuAction())
-        self.menubar.addAction(self.menuEdit.menuAction())
         self.menubar.addAction(self.menuHelp.menuAction())
         self.menuFile.addAction(self.actionLoadTable)
         self.menuFile.addAction(self.actionClearTable)
@@ -763,6 +796,12 @@ class Ui_GraphMaker(object):
         self.plotGraph()
     # changedSliderLegendFontSize
 
+    def changedComboBoxLegendPosition(self, index):
+        position = self.comboBoxLegendPosition.getCurrentComboBoxText() 
+        self.plotter_.setLegendPosition(position)
+        self.plotGraph()
+    # changedComboBoxLegendPosition
+
     def changedSliderLineWidth(self, value):
         self.plotter_.setLineWidth(self.sliderLineWidth.getDataList())
         self.plotGraph()
@@ -781,6 +820,11 @@ class Ui_GraphMaker(object):
         self.plotter_.setLineStiles(lineStileSymbol)
         self.plotGraph()
     # changedComboBoxLineStile
+
+    def changedCheckBoxGrid(self, state):
+        self.plotter_.setGridEnabled(self.checkBoxGrid.isChecked())
+        self.plotGraph()
+    # changedCheckBoxGrid
 
     def exportGraph(self):
         file_dialog = QFileDialog()

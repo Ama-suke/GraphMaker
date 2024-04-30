@@ -10,10 +10,11 @@ import numpy as np
 
 class GraphPlotter:   
     BIG_VALUE_ = 1e+10
-    DEFAULT_FONT_SIZE = 12
+    DEFAULT_FONT_SIZE = 15
     DEFAULT_LINE_WIDTH = 1
     DEFAULT_LINE_STILE = "-"
     DEFAULT_LINE_COLOR = "Black"
+    DEFAULT_LEGEND_POSITION = "best"
 
     class Axis:
 
@@ -32,27 +33,42 @@ class GraphPlotter:
 
     class PlotParam:
         def __init__(self):
+            # line
             self.lineColors = []
             self.lineStiles = []
             self.lineWidth = []
+            # legend
             self.legendEnabled = False
             self.legendTexts = []
             self.legendFontSize = GraphPlotter.DEFAULT_FONT_SIZE
+            self.legendPosition = GraphPlotter.DEFAULT_LEGEND_POSITION
+            # grid
+            self.gridEnabled = False
 
     def __init__(self):
-        # global settings
-        # ここはプログラムから変更できないので直接書き換えてください
-        plt.rcParams["font.family"] = "DejaVu Serif" # font
-
         self.fig_ = plt.figure()
         self.ax_ = self.fig_.add_subplot(111)
 
+        # global settings
+        # ここはプログラムから変更できないので直接書き換えてください
+        # フォント
+        plt.rcParams["font.family"] = "Times New Roman" # font
+        plt.rcParams["mathtext.fontset"] = "stix" # 数式font
+        plt.rcParams["font.size"] = GraphPlotter.DEFAULT_FONT_SIZE # font size
+        # 凡例
+        plt.rcParams["legend.fancybox"] = False # 凡例の枠を四角くする
+        plt.rcParams["legend.edgecolor"] = "black" # 凡例の枠線の色を白にする
+        # 軸
+        plt.rcParams['xtick.direction'] = 'in' #x軸の目盛りの向き
+        plt.rcParams['ytick.direction'] = 'in' #y軸の目盛りの向き
+        plt.rcParams["xtick.minor.visible"] = True  #x軸補助目盛りの追加
+        plt.rcParams["ytick.minor.visible"] = True  #y軸補助目盛りの追加
         # initialize the axis parameters
         self.xAxis_ = GraphPlotter.Axis()
         self.yAxis_ = GraphPlotter.Axis()
 
         # initialize the plot parameters
-        self.plotParam_ = self.PlotParam()
+        self.plotParam_ = GraphPlotter.PlotParam()
 
         # initialize data
         self.dataList_ = []
@@ -112,7 +128,10 @@ class GraphPlotter:
             self.ax_.set_ylim(top=self.yAxis_.limit.max.value)
        
         if self.plotParam_.legendEnabled:
-            self.ax_.legend(self.plotParam_.legendTexts, prop={"size": self.plotParam_.legendFontSize})
+            self.ax_.legend(self.plotParam_.legendTexts, prop={"size": self.plotParam_.legendFontSize}, loc=self.plotParam_.legendPosition)
+
+        if self.plotParam_.gridEnabled:
+            self.ax_.grid()
 
         # resize plot
         self.fig_.tight_layout()
@@ -175,6 +194,9 @@ class GraphPlotter:
     def setLegendFontSize(self, size: int):
         self.plotParam_.legendFontSize = size
 
+    def setLegendPosition(self, position: str):
+        self.plotParam_.legendPosition = position
+
     def setLineWidth(self, width: list):
         self.plotParam_.lineWidth = width
 
@@ -183,6 +205,9 @@ class GraphPlotter:
 
     def setLineColors(self, colors: list):
         self.plotParam_.lineColors = colors
+
+    def setGridEnabled(self, enabled: bool):
+        self.plotParam_.gridEnabled = enabled
 
     def getXDataRange(self):
         return self.xDataRange_
