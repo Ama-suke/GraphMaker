@@ -167,6 +167,7 @@ class my_widget:
         def __init__(self, parent=None, hasCheckBox=False, hasSelectBox=False, isDouble=False):
             self.layoutSlider_ = QHBoxLayout()
             super().__init__(self.layoutSlider_, parent, hasCheckBox, hasSelectBox)
+            self.isDouble_ = isDouble
 
             # objects
             self.slider_ = QSlider(parent)
@@ -204,7 +205,8 @@ class my_widget:
             self.slider_.setRange(min * self.sliderGain_, max * self.sliderGain_)
             self.spinBox_.setRange(min, max)
             self.slider_.setSingleStep((max - min) / self.SLIDER_RESOLUTION * self.sliderGain_)
-            self.spinBox_.setSingleStep((max - min) / self.SLIDER_RESOLUTION)
+            if self.isDouble_:
+                self.spinBox_.setSingleStep((max - min) / self.SLIDER_RESOLUTION)
 
         def setValueChangeCallback(self, fValueChangeCallback):
             self.fValueChangeCallback_ = fValueChangeCallback
