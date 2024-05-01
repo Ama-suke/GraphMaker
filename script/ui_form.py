@@ -550,12 +550,14 @@ class Ui_GraphMaker(object):
             for row in csv_reader:
                 dataList.append(row)
 
+        # ヘッダーの追加
         existingItems = [self.listDataList.item(i).text() for i in range(self.listDataList.count())]
-        newHeaders = [f"{item}/{i+1}" if item in existingItems else item for i, item in enumerate(headers)]
+        newHeaders = [self.getNumberedNameIfDuplicated(header, existingItems) for header in headers]
         if self.listDataList.item(0).text() == "No data":
             self.listDataList.clear()
         self.listDataList.addItems(newHeaders)
 
+        # データの追加
         for i in range(len(newHeaders)):
             self.dataList_[newHeaders[i]] = [float(data[i]) if data[i] != "" else 0 for data in dataList]
         self.plotter_.setData(list(self.dataList_.values()))
@@ -566,6 +568,15 @@ class Ui_GraphMaker(object):
     def loadRosBagData(self, file_path):
         pass
     # loadRosBagData
+
+    def getNumberedNameIfDuplicated(self, name: str, nameList: list):
+        if name not in nameList:
+            return name
+        else:
+            index = 1
+            while f"{name}/{index}" in nameList:
+                index += 1
+            return f"{name}/{index}"
 
     def clickedActionClearTable(self):
         self.listDataList.clear()
