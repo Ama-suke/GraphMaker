@@ -57,7 +57,8 @@ class GraphPlotter:
         plt.rcParams["font.size"] = GraphPlotter.DEFAULT_FONT_SIZE # font size
         # 凡例
         plt.rcParams["legend.fancybox"] = False # 凡例の枠を四角くする
-        plt.rcParams["legend.edgecolor"] = "black" # 凡例の枠線の色を白にする
+        plt.rcParams["legend.edgecolor"] = "black" # 凡例の枠線の色を黒にする
+        plt.rcParams["legend.framealpha"] = 1 # 凡例を透過させない
         # 軸
         plt.rcParams['xtick.direction'] = 'in' #x軸の目盛りの向き
         plt.rcParams['ytick.direction'] = 'in' #y軸の目盛りの向き
