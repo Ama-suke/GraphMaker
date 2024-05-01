@@ -26,6 +26,8 @@ import csv
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from graphPlotter import GraphPlotter 
+import json
+from distutils.util import strtobool
 from myWidgets.LabeledWidget import my_widget
 
 
@@ -528,7 +530,7 @@ class Ui_GraphMaker(object):
 
     def clickedActionLoadTable(self):
         file_dialog = QFileDialog()
-        file_path, _ = file_dialog.getOpenFileName(None, "Select File", "", "CSV Files (*.csv);;Bag Files (*.bag)")
+        file_path, _ = file_dialog.getOpenFileName(None, "Load Table", "", "CSV Files (*.csv);;Bag Files (*.bag)")
         if file_path == '':
             return
         
@@ -581,11 +583,127 @@ class Ui_GraphMaker(object):
     # clickedActionClearTable
 
     def clickedActionLoadSetting(self):
+        file_dialog = QFileDialog()
+        file_path, _ = file_dialog.getOpenFileName(None, "Load Setting", "", "Setting Files (*.json)")
+        if file_path == '':
+            return
         pass
+
+        with open(file_path, 'r') as file:
+            settings = json.load(file)
+
+        lines = self.sliderLineWidth.getDataDict().keys()
+
+        # 軸ラベル
+        self.lineEditXAxisLabel.setText(settings["xAxis"]["label"])
+        self.lineEditYAxisLabel.setText(settings["yAxis"]["label"])
+        # フォントサイズ
+        self.sliderXAxisFontSize.setValue(int(settings["xAxis"]["fontSize"]))
+        self.sliderYAxisFontSize.setValue(int(settings["yAxis"]["fontSize"]))
+        # 軸制限
+        self.sliderXAxisMinLimit.setChecked(strtobool(settings["xAxis"]["limit"]["min"]["enabled"]))
+        self.sliderXAxisMaxLimit.setChecked(strtobool(settings["xAxis"]["limit"]["max"]["enabled"]))
+        self.sliderYAxisMinLimit.setChecked(strtobool(settings["yAxis"]["limit"]["min"]["enabled"]))
+        self.sliderYAxisMaxLimit.setChecked(strtobool(settings["yAxis"]["limit"]["max"]["enabled"]))
+        self.sliderXAxisMinLimit.setValue(float(settings["xAxis"]["limit"]["min"]["value"]))
+        self.sliderXAxisMaxLimit.setValue(float(settings["xAxis"]["limit"]["max"]["value"]))
+        self.sliderYAxisMinLimit.setValue(float(settings["yAxis"]["limit"]["min"]["value"]))
+        self.sliderYAxisMaxLimit.setValue(float(settings["yAxis"]["limit"]["max"]["value"]))
+
+        # ライン
+        index = 0
+        for line in lines:
+            # ライン幅
+            if settings["line"]["widths"][index] is not None:
+                self.sliderLineWidth.setData(line, int(settings["line"]["widths"][index]))
+            # ラインカラー
+            if settings["line"]["colors"][index] is not None:
+                self.colorSelectorLineColor.setData(line, settings["line"]["colors"][index])
+            # ラインスタイル
+            if settings["line"]["stiles"][index] is not None:
+                stileIndex = list(self.LINE_STILE_MAP.keys()).index(settings["line"]["stiles"][index])
+                self.comboBoxLineStile.setData(line, stileIndex)
+            index += 1
+        # プロットへの反映
+        self.plotter_.setLineWidth([int(width) for width in settings["line"]["widths"]])
+        self.plotter_.setLineColors(settings["line"]["colors"])
+        self.plotter_.setLineStiles([self.LINE_STILE_MAP[stileStr] for stileStr in settings["line"]["stiles"]])
+
+        # 凡例
+        self.lineEditLegendText.setChecked(strtobool(settings["legend"]["enabled"]))
+        # 凡例テキスト
+        index = 0
+        for line in lines:
+            if settings["legend"]["texts"][index] is not None:
+                self.lineEditLegendText.setData(line, settings["legend"]["texts"][index])
+            
+            index += 1
+        # プロットへの反映
+        self.plotter_.setLegendTexts(settings["legend"]["texts"])
+        # 凡例フォントサイズ
+        self.sliderLegendFontSize.setValue(int(settings["legend"]["fontSize"]))
+        # 凡例位置
+        self.comboBoxLegendPosition.setCurrentComboBoxText(settings["legend"]["position"])
+
+        # グリッド
+        self.checkBoxGrid.setChecked(strtobool(settings["grid"]["enabled"]))
+
+        self.plotGraph()
     # clickedActionLoadSetting
 
     def clickedActionSaveSetting(self):
-        pass
+        file_dialog = QFileDialog()
+        file_path, _ = file_dialog.getSaveFileName(None, "Save Setting", "", "Setting Files (*.json)")
+        if file_path == '':
+            return
+
+        settings = {
+            "xAxis": {
+                "label": self.lineEditXAxisLabel.getText(),
+                "fontSize": str(self.sliderXAxisFontSize.getValue()),
+                "limit": {
+                    "min": {
+                        "enabled": str(self.sliderXAxisMinLimit.isChecked()),
+                        "value": str(self.sliderXAxisMinLimit.getValue())
+                    },
+                    "max": {
+                        "enabled": str(self.sliderXAxisMaxLimit.isChecked()),
+                        "value": str(self.sliderXAxisMaxLimit.getValue())
+                    }
+                }
+            },
+            "yAxis": {
+                "label": self.lineEditYAxisLabel.getText(),
+                "fontSize": str(self.sliderYAxisFontSize.getValue()),
+                "limit": {
+                    "min": {
+                        "enabled": str(self.sliderYAxisMinLimit.isChecked()),
+                        "value": str(self.sliderYAxisMinLimit.getValue())
+                    },
+                    "max": {
+                        "enabled": str(self.sliderYAxisMaxLimit.isChecked()),
+                        "value": str(self.sliderYAxisMaxLimit.getValue())
+                    }
+                }
+            },
+            "line": {
+                "widths": [str(widthVal) for widthVal in self.sliderLineWidth.getDataList()],
+                "colors": self.colorSelectorLineColor.getDataList(),
+                "stiles": [list(self.LINE_STILE_MAP.keys())[index] for index in self.comboBoxLineStile.getDataList()]
+            },
+            "legend": {
+                "enabled": str(self.lineEditLegendText.isChecked()),
+                "texts": self.lineEditLegendText.getDataList(),
+                "fontSize": str(self.sliderLegendFontSize.getValue()),
+                "position": self.comboBoxLegendPosition.getCurrentComboBoxText()
+            },
+            "grid": {
+                "enabled": str(self.checkBoxGrid.isChecked())
+            }
+        }
+
+        with open(file_path, 'w') as file:
+            json.dump(settings, file, indent=4)
     # clickedActionSaveSetting
 
     def clickedActionUserManual(self):
@@ -828,7 +946,7 @@ class Ui_GraphMaker(object):
 
     def exportGraph(self):
         file_dialog = QFileDialog()
-        file_path, _ = file_dialog.getSaveFileName(None, "Save File", "", "PNG Files (*.png);;PDF Files (*.pdf)")
+        file_path, _ = file_dialog.getSaveFileName(None, "Save Plot", "", "PNG Files (*.png);;PDF Files (*.pdf)")
         if file_path == '':
             return
         

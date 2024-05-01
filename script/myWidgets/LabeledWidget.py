@@ -1,5 +1,8 @@
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel, QLineEdit, QSizePolicy, QSlider, QSpinBox, QDoubleSpinBox, QCheckBox, QComboBox
 from PySide6.QtCore import QSize, Qt
+import numpy as np
+
+# 継承の使い方が下手すぎ。マネしないでね
 
 # namespace
 class my_widget:
@@ -55,12 +58,21 @@ class my_widget:
 
         def setData(self, key: str, data):
             self.dataDict_[key] = data
+            # keyがセレクトボックスと一致する場合はデータを反映
+            if self.hasSelectBox_ and key == self.selectBox_.currentText():
+                self.setWidgetItem(data)
+
+        def setWidgetItem(self, data):
+            pass
 
         def getLabel(self):
             return self.label_
         
         def getLayout(self):
             return self.layout_
+        
+        def setChecked(self, checked: bool):
+            self.label_.setChecked(checked)
         
         def isChecked(self):
             return self.label_.isChecked()
@@ -131,6 +143,9 @@ class my_widget:
         
         def setText(self, text: str):
             self.lineEdit_.setText(text)
+
+        def setWidgetItem(self, data):
+            self.setText(data)
         
         def getText(self):
             return self.lineEdit_.text()
@@ -197,6 +212,9 @@ class my_widget:
         
         def setValue(self, value):
             self.spinBox_.setValue(value)
+
+        def setWidgetItem(self, data):
+            self.setValue(data)
         
         def getValue(self):
             return self.spinBox_.value()
@@ -267,6 +285,12 @@ class my_widget:
         def setCurrentComboBoxIndex(self, index):
             self.comboBox_.setCurrentIndex(index)
 
+        def setCurrentComboBoxText(self, text):
+            self.comboBox_.setCurrentText(text)
+
+        def setWidgetItem(self, data):
+            self.setCurrentComboBoxIndex(data)
+
         def getCurrentComboBoxIndex(self):
             return self.comboBox_.currentIndex()
         
@@ -326,6 +350,9 @@ class my_widget:
 
         def setColor(self, color: str):
             self.colorComboBox_.setCurrentIndex(self.colorComboBox_.findText(color))
+
+        def setWidgetItem(self, data):
+            self.setColor(data)
         
         def getColor(self):
             return self.colorComboBox_.currentText()

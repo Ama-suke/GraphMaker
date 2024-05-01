@@ -1,0 +1,71 @@
+{
+    "xAxis":
+    {
+        "label": "",
+        "fontSize": "15",
+        "limit":
+        {
+            "min": 
+            {
+                "enabled": "False",
+                "value": "0"
+            },
+            "max": 
+            {
+                "enabled": "False",
+                "value": "0"
+            }
+        }
+    },
+    "yAxis":
+    {
+        "label": "",
+        "fontSize": "15",
+        "limit":
+        {
+            "min": 
+            {
+                "enabled": "False",
+                "value": "0"
+            },
+            "max": 
+            {
+                "enabled": "False",
+                "value": "0"
+            }
+        }
+    },
+    "line":
+    {
+        "widths": [
+            "1",
+            "1",
+            "1"
+        ],
+        "colors": [
+            "Blue", 
+            "Red", 
+            "Green"
+        ],
+        "stiles": [
+            "Solid", 
+            "Solid", 
+            "Solid"
+        ]
+    },
+    "legend":
+    {
+        "enabled": "False",
+        "texts": [
+            "Line 1", 
+            "Line 2", 
+            "Line 3"
+        ],
+        "fontSize": "15",
+        "position": "best"
+    },
+    "grid":
+    {
+        "enabled": "False"
+    }
+}
