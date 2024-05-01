@@ -21,7 +21,7 @@ from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDoubleSpinBo
     QLineEdit, QListWidget, QListWidgetItem, QMainWindow,
     QMenu, QMenuBar, QPushButton, QSizePolicy,
     QSlider, QSpacerItem, QSpinBox, QStatusBar,
-    QTabWidget, QVBoxLayout, QWidget, QFileDialog)
+    QTabWidget, QVBoxLayout, QWidget, QFileDialog, QStyle)
 import csv
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -29,6 +29,7 @@ from graphPlotter import GraphPlotter
 import json
 from distutils.util import strtobool
 from myWidgets.LabeledWidget import my_widget
+import webbrowser
 
 
 class Ui_GraphMaker(object):
@@ -50,6 +51,8 @@ class Ui_GraphMaker(object):
         GraphMaker.setWindowTitle(QCoreApplication.translate("GraphMaker", u"GraphMaker", None))
         windowWidth = self.TAB_WIDGET_WIDTH + self.PLOT_AREA_HEIGHT * self.PLOT_ASPECT_RATIO + self.WINDOW_MARGIN
         GraphMaker.setFixedSize(windowWidth, self.PLOT_AREA_HEIGHT + self.WINDOW_MARGIN)
+        windowIcon = QApplication.style().standardIcon( QStyle.SP_TitleBarMenuButton)
+        GraphMaker.setWindowIcon(windowIcon)
         font = QFont()
         font.setPointSize(12)
         # 初期設定のために最初に生成する
@@ -502,15 +505,15 @@ class Ui_GraphMaker(object):
         self.actionSaveSetting = QAction(GraphMaker)
         self.actionSaveSetting.setObjectName(u"ActionSaveSetting")
         self.actionSaveSetting.setText(QCoreApplication.translate("GraphMaker", u"Save setting", None))
-        self.actionUserManual = QAction(GraphMaker)
-        self.actionUserManual.setObjectName(u"ActionUserManual")
-        self.actionUserManual.setText(QCoreApplication.translate("GraphMaker", u"User manual", None))
+        self.actionReadMe = QAction(GraphMaker)
+        self.actionReadMe.setObjectName(u"ActionReadMe")
+        self.actionReadMe.setText(QCoreApplication.translate("GraphMaker", u"Readme", None))
         # callback
         self.actionLoadTable.triggered.connect(self.clickedActionLoadTable) 
         self.actionClearTable.triggered.connect(self.clickedActionClearTable)
         self.actionLoadSetting.triggered.connect(self.clickedActionLoadSetting)
         self.actionSaveSetting.triggered.connect(self.clickedActionSaveSetting)
-        self.actionUserManual.triggered.connect(self.clickedActionUserManual)
+        self.actionReadMe.triggered.connect(self.clickedActionReadMe)
         # actions end ------------------------------------------------------
         # add actions to menu
         self.menubar.addAction(self.menuFile.menuAction())
@@ -520,7 +523,7 @@ class Ui_GraphMaker(object):
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionLoadSetting)
         self.menuFile.addAction(self.actionSaveSetting)
-        self.menuHelp.addAction(self.actionUserManual)
+        self.menuHelp.addAction(self.actionReadMe)
         # menu bar end ------------------------------------------------------
 
         self.dataList_ = {}
@@ -717,9 +720,10 @@ class Ui_GraphMaker(object):
             json.dump(settings, file, indent=4)
     # clickedActionSaveSetting
 
-    def clickedActionUserManual(self):
-        pass
-    # clickedActionUserManual
+    def clickedActionReadMe(self):
+        # githubのreadmeを開く
+        webbrowser.open("https://github.com/Ama-suke/GraphMaker/blob/main/readme.md")
+    # clickedActionReadMe
 
     def clickedButtonAddXAxis(self):
         if self.listDataList.currentItem() is None:
