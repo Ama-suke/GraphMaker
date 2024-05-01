@@ -1,38 +1,56 @@
 {
-    "xAxis":
-    {
+    "xAxis": {
         "label": "Time [s]",
-        "fontSize": "20",
-        "limit":
-        {
-            "min": 
-            {
+        "fontSize": "18",
+        "limit": {
+            "min": {
                 "enabled": "True",
-                "value": "0"
+                "value": "0.0"
             },
-            "max": 
-            {
+            "max": {
                 "enabled": "True",
-                "value": "0.5"
+                "value": "9.58904"
             }
         }
     },
-    "yAxis":
-    {
-        "label": "Value [-]",
-        "fontSize": "15",
-        "limit":
-        {
-            "min": 
-            {
+    "yAxis": {
+        "label": "Voltage [V]",
+        "fontSize": "18",
+        "limit": {
+            "min": {
                 "enabled": "False",
-                "value": "0"
+                "value": "5.0"
             },
-            "max": 
-            {
+            "max": {
                 "enabled": "False",
-                "value": "0"
+                "value": "5.0"
             }
         }
+    },
+    "line": {
+        "widths": [
+            "3",
+            "1"
+        ],
+        "colors": [
+            "Red",
+            "Blue"
+        ],
+        "stiles": [
+            "Solid",
+            "Dashed"
+        ]
+    },
+    "legend": {
+        "enabled": "True",
+        "texts": [
+            "Reference",
+            "Output"
+        ],
+        "fontSize": "15",
+        "position": "lower right"
+    },
+    "grid": {
+        "enabled": "True"
     }
 }
