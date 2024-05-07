@@ -3,10 +3,12 @@
 *.png
 __pycache__
 .qtcreator
-build/
-dist/
+*build/
+*dist/
 *.spec
 venv/
+*.exe
+versions/
 
 # whitelist
 !testData/*
