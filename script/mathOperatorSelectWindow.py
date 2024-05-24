@@ -369,7 +369,7 @@ class MathOperatorSelectWindow(QDialog):
         # no error
         if errorMessage == "":
             self.isError_ = False
-            errorMessage = "Collect!"
+            errorMessage = "Correct!"
 
         # display the error message
         self.textEditConsoleLog_.setText(errorMessage)
