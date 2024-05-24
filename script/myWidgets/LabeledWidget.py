@@ -282,6 +282,9 @@ class my_widget:
         def clearComboBox(self):
             self.comboBox_.clear()
 
+        def getComboBoxItems(self):
+            return [self.comboBox_.itemText(i) for i in range(self.comboBox_.count())]
+
         def setCurrentComboBoxIndex(self, index):
             self.comboBox_.setCurrentIndex(index)
 
