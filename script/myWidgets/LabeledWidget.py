@@ -370,6 +370,8 @@ class my_widget:
             self.colorComboBox_.addItem("Cyan")
             self.colorComboBox_.addItem("Magenta")
             self.colorComboBox_.addItem("White")
+            self.colorComboBox_.addItem("Orange")
+            self.colorComboBox_.addItem("Purple")
 
             self.colorComboBox_.setCurrentIndex(0)
 
