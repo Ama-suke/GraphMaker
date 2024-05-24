@@ -1,7 +1,6 @@
 # switchedValue.py
 # Author: hoshina
 # Created: 2024/04/14
-# version: 0.0
 # brief: 有効かどうかを同時に持つ値
 
 class SwitchedValue:

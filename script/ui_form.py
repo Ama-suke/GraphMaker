@@ -30,6 +30,7 @@ import json
 from distutils.util import strtobool
 from myWidgets.LabeledWidget import my_widget
 import webbrowser
+from mathOperatorSelectWindow import *
 
 
 class Ui_GraphMaker(object):
@@ -51,12 +52,13 @@ class Ui_GraphMaker(object):
         GraphMaker.setWindowTitle(QCoreApplication.translate("GraphMaker", u"GraphMaker", None))
         windowWidth = self.TAB_WIDGET_WIDTH + self.PLOT_AREA_HEIGHT * self.PLOT_ASPECT_RATIO + self.WINDOW_MARGIN
         GraphMaker.setFixedSize(windowWidth, self.PLOT_AREA_HEIGHT + self.WINDOW_MARGIN)
-        windowIcon = QApplication.style().standardIcon( QStyle.SP_TitleBarMenuButton)
+        windowIcon = QApplication.style().standardIcon(QStyle.SP_TitleBarMenuButton)
         GraphMaker.setWindowIcon(windowIcon)
         font = QFont()
         font.setPointSize(12)
         # 初期設定のために最初に生成する
         self.plotter_ = GraphPlotter()
+        self.mathOperatorSelectWindow_ = MathOperatorSelectWindow()
         
         # layout settings begin --------------------------------------------
         # @brief window内のウィジェットのレイアウトを設定を行う
@@ -104,28 +106,50 @@ class Ui_GraphMaker(object):
         self.horizontalLayoutDataSelectorTab.setObjectName(u"HorizontalLayoutDataSelectorTab")
 
         # objects
-        self.listDataList = QListWidget(self.tabDataSelector)
+        self.verticalLayoutDataList = QVBoxLayout()
         self.verticalLayoutAddAxisButton = QVBoxLayout()
         self.verticalLayoutSelectedAxis = QVBoxLayout()
 
         # layout
-        self.horizontalLayoutDataSelectorTab.addWidget(self.listDataList)
+        self.horizontalLayoutDataSelectorTab.addLayout(self.verticalLayoutDataList)
         self.horizontalLayoutDataSelectorTab.addLayout(self.verticalLayoutAddAxisButton)
         self.horizontalLayoutDataSelectorTab.addLayout(self.verticalLayoutSelectedAxis)
 
         # data list begin -------------------------------------------------
         # setting
+        self.verticalLayoutDataList.setObjectName(u"VerticalLayoutDataList")
+
+        # objects
+        self.horizontalLayoutAddMathData = QHBoxLayout()
+        self.listDataList = QListWidget(self.tabDataSelector)
+
+        # layout
+        self.verticalLayoutDataList.addLayout(self.horizontalLayoutAddMathData)
+        self.verticalLayoutDataList.addWidget(self.listDataList)
+
+        # math data add button
+        self.horizontalSpacerAddMathData = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        
+        self.pushButtonAddMathData = QPushButton(self.tabDataSelector)
+        self.pushButtonAddMathData.setObjectName(u"PushButtonAddMathData")
+        self.pushButtonAddMathData.setText(QCoreApplication.translate("GraphMaker", u"+", None))
+        self.pushButtonAddMathData.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed))
+        self.pushButtonAddMathData.setMaximumSize(QSize(30, 30))
+        self.pushButtonAddMathData.clicked.connect(self.clickedButtonAddMathData)
+
+        self.horizontalLayoutAddMathData.addItem(self.horizontalSpacerAddMathData)
+        self.horizontalLayoutAddMathData.addWidget(self.pushButtonAddMathData)
+
+        # data list
         QListWidgetItem(self.listDataList)
         self.listDataList.setObjectName(u"ListDataList")
         self.listDataList.setMinimumSize(QSize(170, 0))
         self.listDataList.setMaximumSize(QSize(16777215, 16777215))
         __sortingEnabled = self.listDataList.isSortingEnabled()
         self.listDataList.setSortingEnabled(False)
-        ___qlistwidgetitem = self.listDataList.item(0)
-        ___qlistwidgetitem.setText(QCoreApplication.translate("GraphMaker", u"No data", None))
+        ___qListWidgetItemEmpty = self.listDataList.item(0)
+        ___qListWidgetItemEmpty.setText(QCoreApplication.translate("GraphMaker", u"No data", None))
         self.listDataList.setSortingEnabled(__sortingEnabled)
-        # objects
-        # layout
 
         # callback
         self.listDataList.doubleClicked.connect(self.doubleClickedListDataList)
@@ -433,9 +457,11 @@ class Ui_GraphMaker(object):
         self.groupBoxPreview.setFont(font)
         self.verticalLayoutPreview = QVBoxLayout(self.groupBoxPreview)
         self.verticalLayoutPreview.setObjectName(u"VerticalLayoutPreview")
+
         # objects
         self.figureCanvasPlotPreview = FigureCanvas(self.plotter_.getFigure())
         self.horizontalLayoutPreviewButton = QHBoxLayout()
+
         # layout
         self.verticalLayoutPreview.addWidget(self.figureCanvasPlotPreview)
         self.verticalLayoutPreview.addLayout(self.horizontalLayoutPreviewButton)
@@ -527,6 +553,7 @@ class Ui_GraphMaker(object):
         # menu bar end ------------------------------------------------------
 
         self.dataList_ = {}
+        self.mathOperatorOptionList_ = []
 
         QMetaObject.connectSlotsByName(GraphMaker)
     # setupUi
@@ -725,6 +752,18 @@ class Ui_GraphMaker(object):
         webbrowser.open("https://github.com/Ama-suke/GraphMaker/blob/main/readme.md")
     # clickedActionReadMe
 
+    def clickedButtonAddMathData(self):
+        self.mathOperatorSelectWindow_.showWindow(self.dataList_, self.mathOperatorOptionList_)
+        self.mathOperatorSelectWindow_.exec_()
+        if self.mathOperatorSelectWindow_.isValid():
+            options, dataDict = self.mathOperatorSelectWindow_.getResults()
+            self.mathOperatorOptionList_.append(options)
+            self.dataList_[list(dataDict.keys())[0]] = dataDict[list(dataDict.keys())[0]]
+            self.plotter_.setData(list(self.dataList_.values()))
+            if not options.dataName in [self.listDataList.item(i).text() for i in range(self.listDataList.count())]:
+                self.listDataList.addItem(options.dataName)
+    # clickedButtonAddMathData
+
     def clickedButtonAddXAxis(self):
         if self.listDataList.currentItem() is None:
             return
@@ -790,6 +829,7 @@ class Ui_GraphMaker(object):
 
     def convertHeaderToIndex(self, header):
         return list(self.dataList_.keys()).index(header)
+    # convertHeaderToIndex
 
     def doubleClickedListDataList(self):
         if self.listXAxisData.count() == 0:
@@ -836,7 +876,7 @@ class Ui_GraphMaker(object):
 
     def plotGraph(self):
         try:
-            plt.cla()
+            self.plotter_.clearPlot()
             
             self.plotter_.plot()
             self.figureCanvasPlotPreview.draw()
