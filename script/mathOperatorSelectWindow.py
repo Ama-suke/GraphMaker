@@ -63,6 +63,8 @@ class MathOperatorSelectWindow(QDialog):
         self.plotter_.setLineColors(["Red"])
         self.plotter_.setLineStiles(["-"])
         self.plotter_.setLineWidth([1])
+        self.plotter_.setXAxisLabel("Index")
+        self.plotter_.setYAxisLabel("Value")
 
         self.setupUi()
 
