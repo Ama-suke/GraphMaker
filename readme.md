@@ -6,6 +6,11 @@ csvファイルからグラフを作成するプログラムです。
 <!-- 画像の挿入 -->
 ![over view](fig/overView.png)
 
+# 導入
+右側の [releases](https://github.com/Ama-suke/GraphMaker/releases) から exeファイルをダウンロード
+
+※ windows 以外では動作しません
+
 # 使い方
 - Files → Load table からデータを読み込む
 
@@ -75,6 +80,12 @@ csvファイルからグラフを作成するプログラムです。
 # 開発者へ
 - .uiファイルは現状使っていません。参考程度に見てください
     - 修正は ui_form.py に直でお願いします。
+- インストーラは PyInstaller、Nuitka があります。Nuitka のほうが完成した exe が軽量です。
+
+## 必要なパッケージ
+- Python 3.11.x
+    - PySide 6.6.3
+    - matplotlib
 
 # Coming Soon
 - rosbag ファイルへの対応

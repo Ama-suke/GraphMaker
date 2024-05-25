@@ -13,3 +13,4 @@ versions/
 # whitelist
 !testData/*
 !fig/*
+comments.txt
