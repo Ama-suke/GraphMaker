@@ -124,8 +124,8 @@ class Ui_GraphMaker(object):
         self.listDataList = QListWidget(self.tabDataSelector)
 
         # layout
-        self.verticalLayoutDataList.addLayout(self.horizontalLayoutAddMathData)
         self.verticalLayoutDataList.addWidget(self.listDataList)
+        self.verticalLayoutDataList.addLayout(self.horizontalLayoutAddMathData)
 
         # math data add button
         self.horizontalSpacerAddMathData = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
@@ -134,7 +134,7 @@ class Ui_GraphMaker(object):
         self.pushButtonAddMathData.setObjectName(u"PushButtonAddMathData")
         self.pushButtonAddMathData.setText(QCoreApplication.translate("GraphMaker", u"+", None))
         self.pushButtonAddMathData.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed))
-        self.pushButtonAddMathData.setMaximumSize(QSize(30, 30))
+        self.pushButtonAddMathData.setMaximumSize(QSize(40, 20))
         self.pushButtonAddMathData.clicked.connect(self.clickedButtonAddMathData)
 
         self.horizontalLayoutAddMathData.addItem(self.horizontalSpacerAddMathData)

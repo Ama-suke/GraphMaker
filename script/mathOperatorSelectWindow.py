@@ -54,6 +54,7 @@ class MathOperatorSelectWindow(QDialog):
         self.operatorOptions_ = []
         self.isError_ = False
         self.isValid_ = False
+        self.operatedData_ = []
         self.resultOperatorOption_ = MathOperatorOption()
         self.resultDataDict_ = {}
 
@@ -127,7 +128,9 @@ class MathOperatorSelectWindow(QDialog):
         self.spacerSeparateLine_ = QSpacerItem(20, 10, QSizePolicy.Minimum, QSizePolicy.Minimum)
         self.separateLineDataSelect_ = QFrame(self.groupBoxDataSelect_)
         self.labelMathOperator_ = QLabel(self.groupBoxDataSelect_)
+        self.horizontalLayoutMathOperator_ = QHBoxLayout(self.groupBoxDataSelect_)
         self.lineEditMathOperator_ = QLineEdit(self.groupBoxDataSelect_)
+        self.pushButtonMathOperatorReadMe_ = QPushButton(self.groupBoxDataSelect_)
         self.labelConsoleLog_ = QLabel(self.groupBoxDataSelect_)
         self.textEditConsoleLog_ = QTextEdit(self.groupBoxDataSelect_)
         self.spacerDataSelect_ = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -144,7 +147,7 @@ class MathOperatorSelectWindow(QDialog):
         self.verticalLayoutDataSelect_.addWidget(self.separateLineDataSelect_)
         self.verticalLayoutDataSelect_.addItem(self.spacerSeparateLine_)
         self.verticalLayoutDataSelect_.addWidget(self.labelMathOperator_)
-        self.verticalLayoutDataSelect_.addWidget(self.lineEditMathOperator_)
+        self.verticalLayoutDataSelect_.addLayout(self.horizontalLayoutMathOperator_)
         self.verticalLayoutDataSelect_.addWidget(self.labelConsoleLog_)
         self.verticalLayoutDataSelect_.addWidget(self.textEditConsoleLog_)
         self.verticalLayoutDataSelect_.addItem(self.spacerDataSelect_)
@@ -156,6 +159,7 @@ class MathOperatorSelectWindow(QDialog):
         self.labelNewData_.setFont(MathOperatorSelectWindow.FONT)
         self.lineEditNewData_.setObjectName("lineEditNewData")
         self.lineEditNewData_.setFont(MathOperatorSelectWindow.FONT)
+        self.lineEditNewData_.setPlaceholderText("Math")
         self.lineEditData1_.setObjectName("lineEditData1")
         self.lineEditData1_.setFont(MathOperatorSelectWindow.FONT)
         self.lineEditData1_.setLabelText("Data1 (u1):")
@@ -168,8 +172,16 @@ class MathOperatorSelectWindow(QDialog):
         self.labelMathOperator_.setObjectName("labelMathOperator")
         self.labelMathOperator_.setText("Math Operator:")
         self.labelMathOperator_.setFont(MathOperatorSelectWindow.FONT)
+        self.horizontalLayoutMathOperator_.setObjectName("horizontalLayoutMathOperator")
+        self.horizontalLayoutMathOperator_.addWidget(self.lineEditMathOperator_)
+        self.horizontalLayoutMathOperator_.addWidget(self.pushButtonMathOperatorReadMe_)
         self.lineEditMathOperator_.setObjectName("lineEditMathOperator")
         self.lineEditMathOperator_.setFont(MathOperatorSelectWindow.FONT)
+        self.lineEditMathOperator_.setPlaceholderText("u1 + u2")
+        self.pushButtonMathOperatorReadMe_.setObjectName("pushButtonMathOperatorReadMe")
+        self.pushButtonMathOperatorReadMe_.setText("?")
+        self.pushButtonMathOperatorReadMe_.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.pushButtonMathOperatorReadMe_.setMaximumSize(20, 20)
         self.labelConsoleLog_.setObjectName("labelConsoleLog")
         self.labelConsoleLog_.setText("Console Log:")
         self.labelConsoleLog_.setFont(MathOperatorSelectWindow.FONT)
@@ -223,10 +235,10 @@ class MathOperatorSelectWindow(QDialog):
         self.isError_ = False
         self.isValid_ = False
         self.listWidgetDataSelect_.clear()
-        self.lineEditNewData_.setText("Math")
+        self.lineEditNewData_.setText("")
         self.lineEditData1_.setText("")
         self.lineEditData2_.setText("")
-        self.lineEditMathOperator_.setText("u1 + u2")
+        self.lineEditMathOperator_.setText("")
         self.textEditConsoleLog_.setText("")
 
     def showWindow(self, dataDict: dict, operatorOptions: list):
@@ -250,19 +262,6 @@ class MathOperatorSelectWindow(QDialog):
             self.setMathOperatorFromList_("Math")
 
         self.diagnoseError_()
-        
-    def isMathOperatorValid(self, data1Name: str, data2Name: str, mathOperator: str):
-        try:
-            if data1Name in self.dataDict_.keys():
-                data1List = self.dataDict_[data1Name]
-                data1 = array(data1List)
-            if data2Name in self.dataDict_.keys():
-                data2List = self.dataDict_[data2Name]
-                data2 = array(data2List)
-            eval(mathOperator.replace("u1", "data1").replace("u2", "data2"))
-            return True
-        except:
-            return False
 
     def getResults(self):
         return self.resultOperatorOption_, self.resultDataDict_
@@ -281,19 +280,15 @@ class MathOperatorSelectWindow(QDialog):
                 break
     
     def plotGraph_(self):
-        if self.isError_:
-            self.plotter_.clearPlot()
-            return
-
-        result = self.computeMathOperator_(self.lineEditData1_.getText(), \
-                                          self.lineEditData2_.getText(), \
-                                          self.lineEditMathOperator_.text())
-        if result is None:
-            self.plotter_.clearPlot()
-            return
+        isValid = self.computeMathOperator_(self.lineEditData1_.getText(), \
+                                            self.lineEditData2_.getText(), \
+                                            self.lineEditMathOperator_.text())
         
         self.plotter_.clearPlot()
+        if not isValid:
+            return
 
+        result = self.operatedData_
         xData = [i for i in range(len(result))]
         dataList = [xData, \
                     result]
@@ -316,17 +311,19 @@ class MathOperatorSelectWindow(QDialog):
             data2List = self.dataDict_[data2Name]
             data2 = array(data2List)
 
-        if self.isMathOperatorValid(data1Name, data2Name, mathOperator):
+        try:
             result = eval(mathOperator.replace("u1", "data1").replace("u2", "data2"))
-            return result
-        else:
-            return None
+            self.operatedData_ = list(result)
+            return True
+        except:
+            return False
 
     def diagnoseError_(self):
         consoleMessage = "Error:\n"
 
         # check if new data name is empty
-        if self.lineEditNewData_.text() == "":
+        newDataName = self.lineEditNewData_.text()
+        if newDataName == "":
             self.isError_ = True
             consoleMessage += "New Data Name is empty.\n"
 
@@ -345,35 +342,36 @@ class MathOperatorSelectWindow(QDialog):
                 consoleMessage += "Data2 is invalid.\n"
 
         # check if data1 and data2 have different length
-        if self.lineEditData1_.getText() in self.dataDict_.keys() and\
-              self.lineEditData2_.getText() in self.dataDict_.keys():
-            data1Len = len(self.dataDict_[self.lineEditData1_.getText()])
-            data2Len = len(self.dataDict_[self.lineEditData2_.getText()])
+        if data1Text in self.dataDict_.keys() and\
+              data2Text in self.dataDict_.keys():
+            data1Len = len(self.dataDict_[data1Text])
+            data2Len = len(self.dataDict_[data2Text])
             if data1Len != data2Len:
                 self.isError_ = True
                 consoleMessage += "Data1 and Data2 have different length.\n"
 
         # check if math operator is empty
-        if self.lineEditMathOperator_.text() == "":
+        mathOperatorText = self.lineEditMathOperator_.text()
+        if mathOperatorText == "":
             self.isError_ = True
             consoleMessage += "Math Operator is empty.\n"
 
         # check if math operator is invalid
-        if not self.isMathOperatorValid(self.lineEditData1_.getText(), \
-                                        self.lineEditData2_.getText(), \
-                                        self.lineEditMathOperator_.text()):
+        elif not self.computeMathOperator_(data1Text, data2Text, mathOperatorText):
             self.isError_ = True
             consoleMessage += "Math Operator is invalid.\n"
+
+        # check if data type is invalid
+        if type(self.operatedData_) is not list:
+            self.isError_ = True
+            consoleMessage += "Data type must be list.\n"
 
         # no error
         if consoleMessage == "Error:\n":
             self.isError_ = False
             consoleMessage = "Correct!\n"
             consoleMessage += "size: "
-            consoleMessage += str(len(
-                self.computeMathOperator_(self.lineEditData1_.getText(), \
-                                          self.lineEditData2_.getText(), \
-                                          self.lineEditMathOperator_.text())))
+            consoleMessage += str(len(self.operatedData_))
 
         # display the error message
         self.textEditConsoleLog_.setText(consoleMessage)
@@ -410,6 +408,8 @@ class MathOperatorSelectWindow(QDialog):
         self.plotGraph_()
 
     def clickedAddData_(self):
+        self.diagnoseError_()
+
         if self.isError_:
             QMessageBox.critical(self, "Error", "An error occurred. Please fix it.")
             return
@@ -422,11 +422,8 @@ class MathOperatorSelectWindow(QDialog):
         
         # add data
         data_name = self.lineEditNewData_.text()
+        self.resultDataDict_[data_name] = self.operatedData_
         self.listWidgetDataSelect_.addItem(data_name)
-        self.resultDataDict_[data_name] = list(\
-            self.computeMathOperator_(self.lineEditData1_.getText(), \
-                                     self.lineEditData2_.getText(), \
-                                     self.lineEditMathOperator_.text()))
         self.updateResultOperatorOption_()
         
         self.isValid_ = True
