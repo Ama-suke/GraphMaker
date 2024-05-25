@@ -755,13 +755,23 @@ class Ui_GraphMaker(object):
     def clickedButtonAddMathData(self):
         self.mathOperatorSelectWindow_.showWindow(self.dataList_, self.mathOperatorOptionList_)
         self.mathOperatorSelectWindow_.exec_()
-        if self.mathOperatorSelectWindow_.isValid():
-            options, dataDict = self.mathOperatorSelectWindow_.getResults()
-            self.mathOperatorOptionList_.append(options)
-            self.dataList_[list(dataDict.keys())[0]] = dataDict[list(dataDict.keys())[0]]
-            self.plotter_.setData(list(self.dataList_.values()))
-            if not options.dataName in [self.listDataList.item(i).text() for i in range(self.listDataList.count())]:
-                self.listDataList.addItem(options.dataName)
+
+        if not self.mathOperatorSelectWindow_.isValid():
+            return
+        
+        # データの追加
+        options, dataDict = self.mathOperatorSelectWindow_.getResults()
+        self.mathOperatorOptionList_.append(options)
+        self.dataList_[list(dataDict.keys())[0]] = dataDict[list(dataDict.keys())[0]]
+        self.plotter_.setData(list(self.dataList_.values()))
+        
+        # データがからの場合はNo dataを削除
+        if self.listDataList.item(0).text() == "No data":
+            self.listDataList.clear()
+
+        # リストに追加
+        if not options.dataName in [self.listDataList.item(i).text() for i in range(self.listDataList.count())]:
+            self.listDataList.addItem(options.dataName)
     # clickedButtonAddMathData
 
     def clickedButtonAddXAxis(self):

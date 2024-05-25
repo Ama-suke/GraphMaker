@@ -242,7 +242,8 @@ class MathOperatorSelectWindow(QDialog):
         # data list
         if self.dataDict_ is not None:
             for key in self.dataDict_.keys():
-                self.listWidgetDataSelect_.addItem(key)
+                dataSize = len(self.dataDict_[key])
+                self.listWidgetDataSelect_.addItem(key + "  (" + str(dataSize) + ")")
 
         # operator list
         if self.operatorOptions_ is not None:
@@ -300,6 +301,7 @@ class MathOperatorSelectWindow(QDialog):
         self.plotter_.plot()
         self.figureCanvasPlotPreview_.draw()
 
+    def updateResultOperatorOption_(self):
         self.resultOperatorOption_.dataName = self.lineEditNewData_.text()
         self.resultOperatorOption_.data1Name = self.lineEditData1_.getText()
         self.resultOperatorOption_.data2Name = self.lineEditData2_.getText()
@@ -321,26 +323,26 @@ class MathOperatorSelectWindow(QDialog):
             return None
 
     def diagnoseError_(self):
-        errorMessage = ""
+        consoleMessage = "Error:\n"
 
         # check if new data name is empty
         if self.lineEditNewData_.text() == "":
             self.isError_ = True
-            errorMessage += "New Data Name is empty.\n"
+            consoleMessage += "New Data Name is empty.\n"
 
         # check if data1 is invalid
         data1Text = self.lineEditData1_.getText()
         if data1Text != "":
             if not data1Text in self.dataDict_.keys():
                 self.isError_ = True
-                errorMessage += "Data1 is invalid.\n"
+                consoleMessage += "Data1 is invalid.\n"
 
         # check if data2 is invalid
         data2Text = self.lineEditData2_.getText()
         if data2Text != "":
             if not data2Text in self.dataDict_.keys():
                 self.isError_ = True
-                errorMessage += "Data2 is invalid.\n"
+                consoleMessage += "Data2 is invalid.\n"
 
         # check if data1 and data2 have different length
         if self.lineEditData1_.getText() in self.dataDict_.keys() and\
@@ -349,35 +351,42 @@ class MathOperatorSelectWindow(QDialog):
             data2Len = len(self.dataDict_[self.lineEditData2_.getText()])
             if data1Len != data2Len:
                 self.isError_ = True
-                errorMessage += "Data1 and Data2 have different length.\n"
+                consoleMessage += "Data1 and Data2 have different length.\n"
 
         # check if math operator is empty
         if self.lineEditMathOperator_.text() == "":
             self.isError_ = True
-            errorMessage += "Math Operator is empty.\n"
+            consoleMessage += "Math Operator is empty.\n"
 
         # check if math operator is invalid
         if not self.isMathOperatorValid(self.lineEditData1_.getText(), \
                                         self.lineEditData2_.getText(), \
                                         self.lineEditMathOperator_.text()):
             self.isError_ = True
-            errorMessage += "Math Operator is invalid.\n"
+            consoleMessage += "Math Operator is invalid.\n"
 
         # no error
-        if errorMessage == "":
+        if consoleMessage == "Error:\n":
             self.isError_ = False
-            errorMessage = "Correct!"
+            consoleMessage = "Correct!\n"
+            consoleMessage += "size: "
+            consoleMessage += str(len(
+                self.computeMathOperator_(self.lineEditData1_.getText(), \
+                                          self.lineEditData2_.getText(), \
+                                          self.lineEditMathOperator_.text())))
 
         # display the error message
-        self.textEditConsoleLog_.setText(errorMessage)
+        self.textEditConsoleLog_.setText(consoleMessage)
 
     # event handlers start ----------------------------------
     def doubleClickedDataList_(self):
+        itemName = self.listWidgetDataSelect_.currentItem().text()
+        itemName = itemName.split("  ")[0]
         if self.lineEditData1_.getText() == "":
-            self.lineEditData1_.setText(self.listWidgetDataSelect_.currentItem().text())
+            self.lineEditData1_.setText(itemName)
 
         elif self.lineEditData2_.getText() == "":
-            self.lineEditData2_.setText(self.listWidgetDataSelect_.currentItem().text())
+            self.lineEditData2_.setText(itemName)
 
         self.diagnoseError_()
         self.plotGraph_()
@@ -418,6 +427,7 @@ class MathOperatorSelectWindow(QDialog):
             self.computeMathOperator_(self.lineEditData1_.getText(), \
                                      self.lineEditData2_.getText(), \
                                      self.lineEditMathOperator_.text()))
+        self.updateResultOperatorOption_()
         
         self.isValid_ = True
 
