@@ -150,7 +150,7 @@ class MathOperatorSelectWindow(QDialog):
 
         # objects settings
         self.labelNewData_.setObjectName("labelDataName")
-        self.labelNewData_.setText("New Data:")
+        self.labelNewData_.setText("New Data Name:")
         self.labelNewData_.setFont(MathOperatorSelectWindow.FONT)
         self.lineEditNewData_.setObjectName("lineEditNewData")
         self.lineEditNewData_.setFont(MathOperatorSelectWindow.FONT)
@@ -325,11 +325,6 @@ class MathOperatorSelectWindow(QDialog):
         if self.lineEditNewData_.text() == "":
             self.isError_ = True
             errorMessage += "New Data Name is empty.\n"
-
-        # check if data1 and data2 are empty
-        if self.lineEditData1_.getText() == "" and self.lineEditData2_.getText() == "":
-            self.isError_ = True
-            errorMessage += "Data1 and Data2 are empty.\n"
 
         # check if data1 is invalid
         data1Text = self.lineEditData1_.getText()
