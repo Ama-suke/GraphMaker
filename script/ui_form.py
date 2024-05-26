@@ -30,7 +30,7 @@ import json
 from distutils.util import strtobool
 from myWidgets.LabeledWidget import my_widget
 import webbrowser
-from mathOperatorSelectWindow import *
+from mathOperatorWindows.mathOperatorSelectWindow import *
 
 
 class Ui_GraphMaker(object):
@@ -43,6 +43,9 @@ class Ui_GraphMaker(object):
     PLOT_AREA_HEIGHT = 300      # plotの高さ
     TAB_WIDGET_WIDTH = 400      # tab widgetの幅
     WINDOW_MARGIN = 200         # windowの余白
+
+    def close(self):
+        self.mathOperatorSelectWindow_.close()
 
     def setupUi(self, GraphMaker):
         if not GraphMaker.objectName():
@@ -760,18 +763,25 @@ class Ui_GraphMaker(object):
             return
         
         # データの追加
-        options, dataDict = self.mathOperatorSelectWindow_.getResults()
-        self.mathOperatorOptionList_.append(options)
-        self.dataList_[list(dataDict.keys())[0]] = dataDict[list(dataDict.keys())[0]]
+        newOption, newDataDict = self.mathOperatorSelectWindow_.getResults()
+        self.dataList_[list(newDataDict.keys())[0]] = newDataDict[list(newDataDict.keys())[0]]
         self.plotter_.setData(list(self.dataList_.values()))
+        
+        # option listの更新
+        for index in range(len(self.mathOperatorOptionList_)):
+            if self.mathOperatorOptionList_[index].dataName == newOption.dataName:
+                self.mathOperatorOptionList_.pop(index)
+        self.mathOperatorOptionList_.append(newOption)
         
         # データがからの場合はNo dataを削除
         if self.listDataList.item(0).text() == "No data":
             self.listDataList.clear()
 
         # リストに追加
-        if not options.dataName in [self.listDataList.item(i).text() for i in range(self.listDataList.count())]:
-            self.listDataList.addItem(options.dataName)
+        if not newOption.dataName in [self.listDataList.item(i).text() for i in range(self.listDataList.count())]:
+            self.listDataList.addItem(newOption.dataName)
+
+        self.plotGraph()
     # clickedButtonAddMathData
 
     def clickedButtonAddXAxis(self):

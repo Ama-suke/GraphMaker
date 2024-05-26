@@ -25,6 +25,9 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from myWidgets.LabeledWidget import my_widget
 import sys
 from numpy import *
+from mathOperatorWindows.mathOperatorReadmeWindow import MathOperatorReadmeWindow
+import threading
+import time
 
 # include guard
 from typing import TYPE_CHECKING
@@ -57,6 +60,7 @@ class MathOperatorSelectWindow(QDialog):
         self.operatedData_ = []
         self.resultOperatorOption_ = MathOperatorOption()
         self.resultDataDict_ = {}
+        self.readmeWindow_ = MathOperatorReadmeWindow()
 
         # initialize plotter
         self.plotter_.setXDataIndex(0)
@@ -68,6 +72,15 @@ class MathOperatorSelectWindow(QDialog):
         self.plotter_.setYAxisLabel("Value")
 
         self.setupUi()
+
+        # start thread
+        self.thread_ = threading.Thread(target=self.presetUpdateThread_)
+        self.thread_.setDaemon(True)
+        self.thread_.start()
+
+    def closeEvent(self, event):
+        self.readmeWindow_.close()
+        event.accept()
 
     def setupUi(self):
         # settings
@@ -227,6 +240,7 @@ class MathOperatorSelectWindow(QDialog):
         self.lineEditData1_.setTextChangedCallback(self.changedData1_)
         self.lineEditData2_.setTextChangedCallback(self.changedData2_)
         self.lineEditMathOperator_.textChanged.connect(self.changedMathOperator_)
+        self.pushButtonMathOperatorReadMe_.clicked.connect(self.clickedMathOperatorReadMe_)
 
     def initializeUi(self):
         self.dataDict_ = {}
@@ -376,6 +390,12 @@ class MathOperatorSelectWindow(QDialog):
         # display the error message
         self.textEditConsoleLog_.setText(consoleMessage)
 
+    def presetUpdateThread_(self):
+        while True:
+            if self.readmeWindow_.isPresetSelected():
+                self.lineEditMathOperator_.setText(self.readmeWindow_.getPreset())
+            time.sleep(0.1)
+
     # event handlers start ----------------------------------
     def doubleClickedDataList_(self):
         itemName = self.listWidgetDataSelect_.currentItem().text()
@@ -429,6 +449,10 @@ class MathOperatorSelectWindow(QDialog):
         self.isValid_ = True
 
         self.close()
+
+    def clickedMathOperatorReadMe_(self):
+        self.readmeWindow_.show()
+        self.readmeWindow_.raise_()
     # event handlers end ------------------------------------
         
 
