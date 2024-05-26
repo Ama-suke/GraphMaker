@@ -916,6 +916,8 @@ class Ui_GraphMaker(object):
 
     def changedCheckBoxLegendText(self, state):
         self.plotter_.setLegendEnabled(self.lineEditLegendText.isChecked())
+        if self.lineEditLegendText.isChecked():
+            self.changedLineEditLegendText(self.lineEditLegendText.getText())
         self.plotGraph()
     # changedCheckBoxLegendText
 
