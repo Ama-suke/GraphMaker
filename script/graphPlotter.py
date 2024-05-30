@@ -1,7 +1,6 @@
 # graphPlotter.py
 # Author: hoshina
 # Created: 2024/04/14
-# version: 0.0
 # brief: グラフの描画を管理するクラス
 
 import matplotlib.pyplot as plt
@@ -137,6 +136,9 @@ class GraphPlotter:
         # resize plot
         self.fig_.tight_layout()
 
+    def clearPlot(self):
+        self.ax_.clear()
+
     def setData(self, dataList: list):
         self.dataList_ = dataList
 
@@ -217,7 +219,7 @@ class GraphPlotter:
         return self.yDataRange_
     
     def clear(self):
-        self.ax_.clear()
+        self.clearPlot()
         self.dataList_ = []
         self.xDataIndexes_ = []
         self.yDataIndexes_ = []

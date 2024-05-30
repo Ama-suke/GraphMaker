@@ -30,6 +30,7 @@ import json
 from distutils.util import strtobool
 from myWidgets.LabeledWidget import my_widget
 import webbrowser
+from mathOperatorWindows.mathOperatorSelectWindow import *
 
 
 class Ui_GraphMaker(object):
@@ -43,6 +44,9 @@ class Ui_GraphMaker(object):
     TAB_WIDGET_WIDTH = 400      # tab widgetの幅
     WINDOW_MARGIN = 200         # windowの余白
 
+    def close(self):
+        self.mathOperatorSelectWindow_.close()
+
     def setupUi(self, GraphMaker):
         if not GraphMaker.objectName():
             GraphMaker.setObjectName(u"MainWindow")
@@ -51,12 +55,13 @@ class Ui_GraphMaker(object):
         GraphMaker.setWindowTitle(QCoreApplication.translate("GraphMaker", u"GraphMaker", None))
         windowWidth = self.TAB_WIDGET_WIDTH + self.PLOT_AREA_HEIGHT * self.PLOT_ASPECT_RATIO + self.WINDOW_MARGIN
         GraphMaker.setFixedSize(windowWidth, self.PLOT_AREA_HEIGHT + self.WINDOW_MARGIN)
-        windowIcon = QApplication.style().standardIcon( QStyle.SP_TitleBarMenuButton)
+        windowIcon = QApplication.style().standardIcon(QStyle.SP_TitleBarMenuButton)
         GraphMaker.setWindowIcon(windowIcon)
         font = QFont()
         font.setPointSize(12)
         # 初期設定のために最初に生成する
         self.plotter_ = GraphPlotter()
+        self.mathOperatorSelectWindow_ = MathOperatorSelectWindow()
         
         # layout settings begin --------------------------------------------
         # @brief window内のウィジェットのレイアウトを設定を行う
@@ -104,28 +109,50 @@ class Ui_GraphMaker(object):
         self.horizontalLayoutDataSelectorTab.setObjectName(u"HorizontalLayoutDataSelectorTab")
 
         # objects
-        self.listDataList = QListWidget(self.tabDataSelector)
+        self.verticalLayoutDataList = QVBoxLayout()
         self.verticalLayoutAddAxisButton = QVBoxLayout()
         self.verticalLayoutSelectedAxis = QVBoxLayout()
 
         # layout
-        self.horizontalLayoutDataSelectorTab.addWidget(self.listDataList)
+        self.horizontalLayoutDataSelectorTab.addLayout(self.verticalLayoutDataList)
         self.horizontalLayoutDataSelectorTab.addLayout(self.verticalLayoutAddAxisButton)
         self.horizontalLayoutDataSelectorTab.addLayout(self.verticalLayoutSelectedAxis)
 
         # data list begin -------------------------------------------------
         # setting
+        self.verticalLayoutDataList.setObjectName(u"VerticalLayoutDataList")
+
+        # objects
+        self.horizontalLayoutAddMathData = QHBoxLayout()
+        self.listDataList = QListWidget(self.tabDataSelector)
+
+        # layout
+        self.verticalLayoutDataList.addWidget(self.listDataList)
+        self.verticalLayoutDataList.addLayout(self.horizontalLayoutAddMathData)
+
+        # math data add button
+        self.horizontalSpacerAddMathData = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        
+        self.pushButtonAddMathData = QPushButton(self.tabDataSelector)
+        self.pushButtonAddMathData.setObjectName(u"PushButtonAddMathData")
+        self.pushButtonAddMathData.setText(QCoreApplication.translate("GraphMaker", u"+", None))
+        self.pushButtonAddMathData.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed))
+        self.pushButtonAddMathData.setMaximumSize(QSize(40, 20))
+        self.pushButtonAddMathData.clicked.connect(self.clickedButtonAddMathData)
+
+        self.horizontalLayoutAddMathData.addItem(self.horizontalSpacerAddMathData)
+        self.horizontalLayoutAddMathData.addWidget(self.pushButtonAddMathData)
+
+        # data list
         QListWidgetItem(self.listDataList)
         self.listDataList.setObjectName(u"ListDataList")
         self.listDataList.setMinimumSize(QSize(170, 0))
         self.listDataList.setMaximumSize(QSize(16777215, 16777215))
         __sortingEnabled = self.listDataList.isSortingEnabled()
         self.listDataList.setSortingEnabled(False)
-        ___qlistwidgetitem = self.listDataList.item(0)
-        ___qlistwidgetitem.setText(QCoreApplication.translate("GraphMaker", u"No data", None))
+        ___qListWidgetItemEmpty = self.listDataList.item(0)
+        ___qListWidgetItemEmpty.setText(QCoreApplication.translate("GraphMaker", u"No data", None))
         self.listDataList.setSortingEnabled(__sortingEnabled)
-        # objects
-        # layout
 
         # callback
         self.listDataList.doubleClicked.connect(self.doubleClickedListDataList)
@@ -439,9 +466,11 @@ class Ui_GraphMaker(object):
         self.groupBoxPreview.setFont(font)
         self.verticalLayoutPreview = QVBoxLayout(self.groupBoxPreview)
         self.verticalLayoutPreview.setObjectName(u"VerticalLayoutPreview")
+
         # objects
         self.figureCanvasPlotPreview = FigureCanvas(self.plotter_.getFigure())
         self.horizontalLayoutPreviewButton = QHBoxLayout()
+
         # layout
         self.verticalLayoutPreview.addWidget(self.figureCanvasPlotPreview)
         self.verticalLayoutPreview.addLayout(self.horizontalLayoutPreviewButton)
@@ -534,6 +563,7 @@ class Ui_GraphMaker(object):
 
         self.dataList_ = {}
         self.lineSettings_ = {}
+        self.mathOperatorOptionList_ = []
 
         QMetaObject.connectSlotsByName(GraphMaker)
     # setupUi
@@ -730,6 +760,35 @@ class Ui_GraphMaker(object):
         webbrowser.open("https://github.com/Ama-suke/GraphMaker/blob/main/readme.md")
     # clickedActionReadMe
 
+    def clickedButtonAddMathData(self):
+        self.mathOperatorSelectWindow_.showWindow(self.dataList_, self.mathOperatorOptionList_)
+        self.mathOperatorSelectWindow_.exec_()
+
+        if not self.mathOperatorSelectWindow_.isValid():
+            return
+        
+        # データの追加
+        newOption, newDataDict = self.mathOperatorSelectWindow_.getResults()
+        self.dataList_[list(newDataDict.keys())[0]] = newDataDict[list(newDataDict.keys())[0]]
+        self.plotter_.setData(list(self.dataList_.values()))
+        
+        # option listの更新
+        for index in range(len(self.mathOperatorOptionList_)):
+            if self.mathOperatorOptionList_[index].dataName == newOption.dataName:
+                self.mathOperatorOptionList_.pop(index)
+        self.mathOperatorOptionList_.append(newOption)
+        
+        # データがからの場合はNo dataを削除
+        if self.listDataList.item(0).text() == "No data":
+            self.listDataList.clear()
+
+        # リストに追加
+        if not newOption.dataName in [self.listDataList.item(i).text() for i in range(self.listDataList.count())]:
+            self.listDataList.addItem(newOption.dataName)
+
+        self.plotGraph()
+    # clickedButtonAddMathData
+
     def clickedButtonAddXAxis(self):
         if self.listDataList.currentItem() is None:
             return
@@ -794,6 +853,7 @@ class Ui_GraphMaker(object):
 
     def convertHeaderToIndex(self, header):
         return list(self.dataList_.keys()).index(header)
+    # convertHeaderToIndex
 
     def doubleClickedListDataList(self):
         if self.listXAxisData.count() == 0:
@@ -849,7 +909,7 @@ class Ui_GraphMaker(object):
         self.plotter_.setLineStiles(stileList)
 
         try:
-            plt.cla()
+            self.plotter_.clearPlot()
             
             self.plotter_.plot()
             self.figureCanvasPlotPreview.draw()
@@ -864,11 +924,11 @@ class Ui_GraphMaker(object):
         xDataRange = self.plotter_.getXDataRange()
         yDataRange = self.plotter_.getYDataRange()
 
-        # 範囲を+-10%ずつ増やす
-        xMin = xDataRange["min"] - (xDataRange["max"] - xDataRange["min"]) * 0.1
-        xMax = xDataRange["max"] + (xDataRange["max"] - xDataRange["min"]) * 0.1
-        yMin = yDataRange["min"] - (yDataRange["max"] - yDataRange["min"]) * 0.1
-        yMax = yDataRange["max"] + (yDataRange["max"] - yDataRange["min"]) * 0.1
+        # 範囲を+-50%ずつ増やす
+        xMin = xDataRange["min"] - (xDataRange["max"] - xDataRange["min"]) * 0.5
+        xMax = xDataRange["max"] + (xDataRange["max"] - xDataRange["min"]) * 0.5
+        yMin = yDataRange["min"] - (yDataRange["max"] - yDataRange["min"]) * 0.5
+        yMax = yDataRange["max"] + (yDataRange["max"] - yDataRange["min"]) * 0.5
 
         # スライダとスピンボックスに反映
         # X軸 min

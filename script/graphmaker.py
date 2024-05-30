@@ -15,6 +15,10 @@ class GraphMaker(QMainWindow):
         self.ui = Ui_GraphMaker()
         self.ui.setupUi(self)
 
+    def closeEvent(self, event):
+        self.ui.close()
+        event.accept()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
