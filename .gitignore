@@ -10,6 +10,7 @@ venv/
 *.exe
 versions/
 comments.txt
+.vscode/
 
 # whitelist
 !testData/*

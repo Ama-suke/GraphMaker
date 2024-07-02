@@ -584,23 +584,40 @@ class Ui_GraphMaker(object):
     def loadCsvData(self, file_path):
         headers = []
         dataList = []
-        with open(file_path, 'r') as file:
-            csv_reader = csv.reader(file)
-            headers = next(csv_reader)
-            for row in csv_reader:
-                dataList.append(row)
 
-        # ヘッダーの追加
-        existingItems = [self.listDataList.item(i).text() for i in range(self.listDataList.count())]
-        newHeaders = [self.getNumberedNameIfDuplicated(header, existingItems) for header in headers]
-        if self.listDataList.item(0).text() == "No data":
+        try:
+            with open(file_path, 'r') as file:
+                csv_reader = csv.reader(file)
+                headers = next(csv_reader)
+                for row in csv_reader:
+                    dataList.append(row)
+                    
+            # ヘッダに空白がある場合は警告を出してそのデータを無視する
+            if "" in headers:
+                QMessageBox.warning(None, "Warning", "There is a blank in the header. This data will be ignored.")
+                headers = [header for header in headers if header != ""]
+
+            # dataListとheadersの長さが一致しない場合はエラー
+            if len(dataList[0]) != len(headers):
+                QMessageBox.critical(None, "Error", "The number of headers and data do not match.")
+                return
+
+            # ヘッダーの追加
+            existingItems = [self.listDataList.item(i).text() for i in range(self.listDataList.count())]
+            newHeaders = [self.getNumberedNameIfDuplicated(header, existingItems) for header in headers]
+
+            if self.listDataList.item(0).text() == "No data":
+                self.listDataList.clear()
+            self.listDataList.addItems(newHeaders)
+
+            # データの追加
+            for i in range(len(newHeaders)):
+                self.dataList_[newHeaders[i]] = [float(data[i]) if data[i] != "" else 0 for data in dataList]
+            self.plotter_.setData(list(self.dataList_.values()))
+
+        except:
             self.listDataList.clear()
-        self.listDataList.addItems(newHeaders)
-
-        # データの追加
-        for i in range(len(newHeaders)):
-            self.dataList_[newHeaders[i]] = [float(data[i]) if data[i] != "" else 0 for data in dataList]
-        self.plotter_.setData(list(self.dataList_.values()))
+            QMessageBox.critical(None, "Error", "Failed to load CSV data.")
 
         self.listDataList.setCurrentRow(0)
     # loadCsvData
@@ -1012,6 +1029,8 @@ class Ui_GraphMaker(object):
 
     def changedComboBoxLineSelection(self, index):
         text = self.comboBoxLineSelection.getCurrentComboBoxText()
+        if text == "":
+            return
 
         self.sliderLineWidth.setValue(self.lineSettings_[text]["width"])
         self.colorSelectorLineColor.setColor(self.lineSettings_[text]["color"])
