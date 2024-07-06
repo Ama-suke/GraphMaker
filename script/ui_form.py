@@ -15,7 +15,7 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QCursor, QFont, QFontDatabase, QGradient,
     QIcon, QImage, QKeySequence, QLinearGradient,
     QPainter, QPalette, QPixmap, QRadialGradient,
-    QTransform)
+    QTransform, QDragEnterEvent, QDropEvent)
 from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDoubleSpinBox,
     QGraphicsView, QGroupBox, QHBoxLayout, QLabel,
     QLineEdit, QListWidget, QListWidgetItem, QMainWindow,
@@ -50,6 +50,7 @@ class Ui_GraphMaker(object):
     def setupUi(self, GraphMaker):
         if not GraphMaker.objectName():
             GraphMaker.setObjectName(u"MainWindow")
+        GraphMaker.setAcceptDrops(True)
 
         # settings
         GraphMaker.setWindowTitle(QCoreApplication.translate("GraphMaker", u"GraphMaker", None))
@@ -59,6 +60,11 @@ class Ui_GraphMaker(object):
         GraphMaker.setWindowIcon(windowIcon)
         font = QFont()
         font.setPointSize(12)
+
+        # callback
+        GraphMaker.dragEnterEvent = self.dragEnterEvent
+        GraphMaker.dropEvent = self.dropEvent
+
         # 初期設定のために最初に生成する
         self.plotter_ = GraphPlotter()
         self.mathOperatorSelectWindow_ = MathOperatorSelectWindow()
@@ -1060,6 +1066,25 @@ class Ui_GraphMaker(object):
         self.plotter_.setGridEnabled(self.checkBoxGrid.isChecked())
         self.plotGraph()
     # changedCheckBoxGrid
+
+    def dragEnterEvent(self, event: QDragEnterEvent):
+        if event.mimeData().hasUrls():
+            event.accept()
+        else:
+            event.ignore()
+    # dragEnterEvent
+
+    def dropEvent(self, event: QDropEvent):
+        urls = event.mimeData().urls()
+        if not urls:
+            return
+    
+        file_path = urls[0].toLocalFile()
+        if file_path.endswith('.csv'):
+            self.loadCsvData(file_path)
+        elif file_path.endswith('.bag'):
+            self.loadRosBagData(file_path)
+    # dropEvent
 
     def exportGraph(self):
         file_dialog = QFileDialog()
