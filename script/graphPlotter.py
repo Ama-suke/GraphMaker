@@ -230,7 +230,7 @@ class GraphPlotter:
         plt.show()
 
     def save(self, filename: str):
-        plt.savefig(filename)
+        self.fig_.savefig(filename)
 
     # private
     @staticmethod
