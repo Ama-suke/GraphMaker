@@ -537,6 +537,9 @@ class Ui_GraphMaker(object):
         self.actionLoadTable = QAction(GraphMaker)
         self.actionLoadTable.setObjectName(u"ActionLoadTable") 
         self.actionLoadTable.setText(QCoreApplication.translate("GraphMaker", u"Load table", None))
+        self.actionSaveTable = QAction(GraphMaker)
+        self.actionSaveTable.setObjectName(u"ActionSaveTable")
+        self.actionSaveTable.setText(QCoreApplication.translate("GraphMaker", u"Save table", None))
         self.actionClearTable = QAction(GraphMaker)
         self.actionClearTable.setObjectName(u"ActionClearTable")
         self.actionClearTable.setText(QCoreApplication.translate("GraphMaker", u"Clear table", None))
@@ -551,6 +554,7 @@ class Ui_GraphMaker(object):
         self.actionReadMe.setText(QCoreApplication.translate("GraphMaker", u"Readme", None))
         # callback
         self.actionLoadTable.triggered.connect(self.clickedActionLoadTable) 
+        self.actionSaveTable.triggered.connect(self.clickedActionSaveTable)
         self.actionClearTable.triggered.connect(self.clickedActionClearTable)
         self.actionLoadSetting.triggered.connect(self.clickedActionLoadSetting)
         self.actionSaveSetting.triggered.connect(self.clickedActionSaveSetting)
@@ -560,6 +564,7 @@ class Ui_GraphMaker(object):
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuHelp.menuAction())
         self.menuFile.addAction(self.actionLoadTable)
+        self.menuFile.addAction(self.actionSaveTable)
         self.menuFile.addAction(self.actionClearTable)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionLoadSetting)
@@ -575,27 +580,27 @@ class Ui_GraphMaker(object):
     # setupUi
 
     def clickedActionLoadTable(self):
-        file_dialog = QFileDialog()
-        file_path, _ = file_dialog.getOpenFileName(None, "Load Table", "", "CSV Files (*.csv);;Bag Files (*.bag)")
-        if file_path == '':
+        fileDialog = QFileDialog()
+        filePath, _ = fileDialog.getOpenFileName(None, "Load Table", "", "CSV Files (*.csv);;Bag Files (*.bag)")
+        if filePath == '':
             return
         
-        if file_path.endswith('.csv'):
-            self.loadCsvData(file_path)
+        if filePath.endswith('.csv'):
+            self.loadCsvData(filePath)
 
-        elif file_path.endswith('.bag'):
-            self.loadRosBagData(file_path)
+        elif filePath.endswith('.bag'):
+            self.loadRosBagData(filePath)
     # clickedActionLoadTable
 
-    def loadCsvData(self, file_path):
+    def loadCsvData(self, filePath):
         headers = []
         dataList = []
 
         try:
-            with open(file_path, 'r') as file:
-                csv_reader = csv.reader(file)
-                headers = next(csv_reader)
-                for row in csv_reader:
+            with open(filePath, 'r') as file:
+                csvReader = csv.reader(file)
+                headers = next(csvReader)
+                for row in csvReader:
                     dataList.append(row)
                     
             # ヘッダに空白がある場合は警告を出してそのデータを無視する
@@ -606,6 +611,11 @@ class Ui_GraphMaker(object):
             # dataListとheadersの長さが一致しない場合はエラー
             if len(dataList[0]) != len(headers):
                 QMessageBox.critical(None, "Error", "The number of headers and data do not match.")
+                return
+            
+            # データが空の場合はエラー
+            if len(headers) == 0:
+                QMessageBox.critical(None, "Error", "No data.")
                 return
 
             # ヘッダーの追加
@@ -618,19 +628,48 @@ class Ui_GraphMaker(object):
 
             # データの追加
             for i in range(len(newHeaders)):
-                self.dataList_[newHeaders[i]] = [float(data[i]) if data[i] != "" else 0 for data in dataList]
+                self.dataList_[newHeaders[i]] = []
+                for data in dataList:
+                    if data[i] == "":
+                        break
+
+                    self.dataList_[newHeaders[i]].append(float(data[i]))
+        
             self.plotter_.setData(list(self.dataList_.values()))
 
         except:
-            self.listDataList.clear()
             QMessageBox.critical(None, "Error", "Failed to load CSV data.")
 
         self.listDataList.setCurrentRow(0)
     # loadCsvData
 
-    def loadRosBagData(self, file_path):
+    def loadRosBagData(self, filePath):
         pass
     # loadRosBagData
+
+    def clickedActionSaveTable(self):
+        fileDialog = QFileDialog()
+        filePath, _ = fileDialog.getSaveFileName(None, "Save Table", "", "CSV Files (*.csv)")
+        if filePath == '':
+            return
+
+        self.saveCsvData(filePath)
+    # clickedActionSaveTable
+
+    def saveCsvData(self, filePath):
+        if self.dataList_ == {}: 
+            QMessageBox.critical(None, "Error", "No data.")
+            return
+        
+        with open(filePath, 'w', newline='') as file:
+            writer = csv.writer(file)
+
+            writer.writerow(self.dataList_.keys())
+            dataSize = max([len(data) for data in self.dataList_.values()])
+            for i in range(dataSize):
+                writtenList = [self.dataList_[header][i] if i < len(self.dataList_[header]) else "" for header in self.dataList_.keys()]
+                writer.writerow(writtenList)
+    # saveCsvData
 
     def getNumberedNameIfDuplicated(self, name: str, nameList: list):
         if name not in nameList:
@@ -655,13 +694,13 @@ class Ui_GraphMaker(object):
     # clickedActionClearTable
 
     def clickedActionLoadSetting(self):
-        file_dialog = QFileDialog()
-        file_path, _ = file_dialog.getOpenFileName(None, "Load Setting", "", "Setting Files (*.json)")
-        if file_path == '':
+        fileDialog = QFileDialog()
+        filePath, _ = fileDialog.getOpenFileName(None, "Load Setting", "", "Setting Files (*.json)")
+        if filePath == '':
             return
         pass
 
-        with open(file_path, 'r') as file:
+        with open(filePath, 'r') as file:
             settings = json.load(file)
 
         lines = self.sliderLineWidth.getDataDict().keys()
@@ -724,9 +763,9 @@ class Ui_GraphMaker(object):
     # clickedActionLoadSetting
 
     def clickedActionSaveSetting(self):
-        file_dialog = QFileDialog()
-        file_path, _ = file_dialog.getSaveFileName(None, "Save Setting", "", "Setting Files (*.json)")
-        if file_path == '':
+        saveDialog = QFileDialog()
+        settingsFilePath, _ = saveDialog.getSaveFileName(None, "Save Setting", "", "Setting Files (*.json)")
+        if settingsFilePath == '':
             return
 
         settings = {
@@ -774,7 +813,7 @@ class Ui_GraphMaker(object):
             }
         }
 
-        with open(file_path, 'w') as file:
+        with open(settingsFilePath, 'w') as file:
             json.dump(settings, file, indent=4)
     # clickedActionSaveSetting
 
@@ -1068,31 +1107,35 @@ class Ui_GraphMaker(object):
     # changedCheckBoxGrid
 
     def dragEnterEvent(self, event: QDragEnterEvent):
-        if event.mimeData().hasUrls():
+        if event.mimeData().hasUrls() or event.mimeData().hasText():
             event.accept()
         else:
             event.ignore()
     # dragEnterEvent
 
     def dropEvent(self, event: QDropEvent):
-        urls = event.mimeData().urls()
-        if not urls:
-            return
-    
-        file_path = urls[0].toLocalFile()
-        if file_path.endswith('.csv'):
-            self.loadCsvData(file_path)
-        elif file_path.endswith('.bag'):
-            self.loadRosBagData(file_path)
+        droppedFilePath = ""
+        if event.mimeData().hasText():
+            droppedFilePath = event.mimeData().text()
+            
+        if event.mimeData().hasUrls():
+            urls = event.mimeData().urls()
+            if urls != []:
+                droppedFilePath = urls[0].toLocalFile()
+
+        if droppedFilePath.endswith('.csv'):
+            self.loadCsvData(droppedFilePath)
+        elif droppedFilePath.endswith('.bag'):
+            self.loadRosBagData(droppedFilePath)
     # dropEvent
 
     def exportGraph(self):
-        file_dialog = QFileDialog()
-        file_path, _ = file_dialog.getSaveFileName(None, "Save Plot", "", "PNG Files (*.png);;PDF Files (*.pdf)")
-        if file_path == '':
+        fileDialog = QFileDialog()
+        filePath, _ = fileDialog.getSaveFileName(None, "Save Plot", "", "PNG Files (*.png);;PDF Files (*.pdf)")
+        if filePath == '':
             return
         
-        self.plotter_.save(file_path)
+        self.plotter_.save(filePath)
     # exportGraph
         
     def addTextToList(self, list: QListWidget, text: str, clear: bool = False):
