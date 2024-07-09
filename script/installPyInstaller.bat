@@ -15,7 +15,7 @@ pip install pyinstaller
 pip install matplotlib
 
 @REM pyinstallerで実行ファイルを作成する
-pyinstaller ./script/graphmaker.py --clean --onefile --noconfirm --noconsole
+pyinstaller ./script/graphmaker.py --clean --onefile --noconfirm --noconsole --icon="fig/icon.ico"
 
 @REM 仮想環境を無効化する
 deactivate

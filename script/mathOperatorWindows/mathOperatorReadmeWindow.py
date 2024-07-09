@@ -47,7 +47,7 @@ class MathOperatorReadmeWindow(QDialog):
     def setupUi_(self):
         self.setWindowTitle("Math Operator Readme")
         self.setGeometry(100, 100, 800, 400)
-        windowIcon = QApplication.style().standardIcon(QStyle.SP_TitleBarMenuButton)
+        windowIcon = QIcon("fig/icon.ico")
         self.setWindowIcon(windowIcon)
         self.setFont(self.FONT)
 

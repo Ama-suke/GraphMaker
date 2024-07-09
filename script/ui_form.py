@@ -50,16 +50,16 @@ class Ui_GraphMaker(object):
     def setupUi(self, GraphMaker):
         if not GraphMaker.objectName():
             GraphMaker.setObjectName(u"MainWindow")
-        GraphMaker.setAcceptDrops(True)
 
         # settings
         GraphMaker.setWindowTitle(QCoreApplication.translate("GraphMaker", u"GraphMaker", None))
         windowWidth = self.TAB_WIDGET_WIDTH + self.PLOT_AREA_HEIGHT * self.PLOT_ASPECT_RATIO + self.WINDOW_MARGIN
         GraphMaker.setFixedSize(windowWidth, self.PLOT_AREA_HEIGHT + self.WINDOW_MARGIN)
-        windowIcon = QApplication.style().standardIcon(QStyle.SP_TitleBarMenuButton)
+        windowIcon = QIcon("fig/icon.ico")
         GraphMaker.setWindowIcon(windowIcon)
         font = QFont()
         font.setPointSize(12)
+        GraphMaker.setAcceptDrops(True)
 
         # callback
         GraphMaker.dragEnterEvent = self.dragEnterEvent

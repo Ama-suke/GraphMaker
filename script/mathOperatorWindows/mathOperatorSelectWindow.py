@@ -87,7 +87,7 @@ class MathOperatorSelectWindow(QDialog):
         self.setObjectName("MathOperatorSelectWindow")
         self.setWindowTitle("Math Operator Select")
         self.resize(MathOperatorSelectWindow.WINDOW_SIZE)
-        windowIcon = QApplication.style().standardIcon(QStyle.SP_TitleBarMenuButton)
+        windowIcon = QIcon("fig/icon.ico")
         self.setWindowIcon(windowIcon)
 
         # layout settings begin --------------------------------

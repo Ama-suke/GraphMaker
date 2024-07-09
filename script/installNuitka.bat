@@ -14,7 +14,7 @@ pip install nuitka zstandard
 pip install matplotlib
 
 @REM pyinstallerで実行ファイルを作成する
-nuitka ./script/graphmaker.py --onefile --disable-console --enable-plugin=pyside6
+nuitka ./script/graphmaker.py --onefile --windows-console-mode=disable --enable-plugin=pyside6 --windows-icon-from-ico="fig/icon.ico" --standalone
 
 @REM 仮想環境を無効化する
 deactivate
