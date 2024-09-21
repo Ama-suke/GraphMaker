@@ -386,6 +386,12 @@ class MathOperatorSelectWindow(QDialog):
             consoleMessage = "Correct!\n"
             consoleMessage += "size: "
             consoleMessage += str(len(self.operatedData_))
+            consoleMessage += "\nGenerated Data:\n"
+            dataStr = str([float(data) for data in self.operatedData_])
+            MAX_CONSOLE_LENGTH = 50
+            if len(dataStr) > MAX_CONSOLE_LENGTH:
+                dataStr = dataStr[:MAX_CONSOLE_LENGTH] + "...]"
+            consoleMessage += dataStr
 
         # display the error message
         self.textEditConsoleLog_.setText(consoleMessage)
